@@ -61,11 +61,10 @@ func main() {
 
 	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*", // Allow all origins
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
-		AllowCredentials: true,
-		MaxAge:           300, // Max age of preflight requests in seconds
+		AllowOrigins: "*", // Allow all origins
+		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
+		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
+		MaxAge:       300, // Max age of preflight requests in seconds
 	}))
 
 	//temporary endpoint to test server is running
@@ -100,6 +99,6 @@ func main() {
 		})
 	})
 
-	log.Println("🚀 Starting Agni server on port 3000")
-	log.Fatal(app.Listen(":3000"))
+	log.Println("🚀 Starting Agni server on port 8080")
+	log.Fatal(app.Listen(":8080"))
 }
