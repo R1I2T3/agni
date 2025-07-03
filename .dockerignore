@@ -1,0 +1,16 @@
+.git
+.gitignore
+README.md
+.dockerignore
+*.md
+.env
+.env.local
+node_modules
+*.log
+.DS_Store
+bin/
+*.exe
+.vscode/
+.idea/
+coverage.txt
+coverage.html
