@@ -6,20 +6,29 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors" // Add this import
+	"github.com/r1i2t3/agni/pkg/config"           // Import your config package if needed
 	"github.com/r1i2t3/agni/pkg/db"
-	"gorm.io/gorm/logger"
 )
 
+// reformat  if looks messy
 func main() {
+
+	//get environment variables for Redis and SQLite configurations and server configurations
+	EnvConfig := config.GetEnvConfig()
+	RedisConfig := EnvConfig.RedisEnvConfig
+	SQLiteConfig := EnvConfig.SQLiteEnvConfig
+	ServerConfig := EnvConfig.ServerEnvConfig
+	CorsConfig := EnvConfig.CorsEnvConfig
+
 	// Initialize Redis connection
 	redisConfig := db.RedisConfig{
-		Host:         "redis",
-		Port:         "6379",
-		Password:     "",
-		DB:           0,
-		DialTimeout:  5 * time.Second,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		Host:         RedisConfig.Host,
+		Port:         RedisConfig.Port,
+		Password:     RedisConfig.Password,
+		DB:           RedisConfig.DB,
+		DialTimeout:  RedisConfig.DialTimeout,
+		ReadTimeout:  RedisConfig.ReadTimeout,
+		WriteTimeout: RedisConfig.WriteTimeout,
 	}
 
 	if err := db.InitRedis(redisConfig); err != nil {
@@ -28,8 +37,8 @@ func main() {
 
 	// Initialize SQLite connection
 	sqliteConfig := db.SQLiteConfig{
-		DatabasePath: "./data/agni.db",
-		LogLevel:     logger.Info, // or logger.Silent for production
+		DatabasePath: SQLiteConfig.DatabasePath,
+		LogLevel:     config.GetLogLevel(SQLiteConfig.LogLevel), // default to "info" if not set
 	}
 
 	if err := db.InitSQLite(sqliteConfig); err != nil {
@@ -61,10 +70,10 @@ func main() {
 
 	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*", // Allow all origins
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
-		MaxAge:       300, // Max age of preflight requests in seconds
+		AllowOrigins: CorsConfig.AllowOrigins,
+		AllowMethods: CorsConfig.AllowMethods,
+		AllowHeaders: CorsConfig.AllowHeaders,
+		MaxAge:       CorsConfig.MaxAge, // Max age of preflight requests in seconds
 	}))
 
 	//temporary endpoint to test server is running
@@ -99,6 +108,6 @@ func main() {
 		})
 	})
 
-	log.Println("🚀 Starting Agni server on port 8080")
-	log.Fatal(app.Listen(":8080"))
+	log.Println("🚀 Starting Agni server on port ", ServerConfig.Port)
+	log.Fatal(app.Listen(":" + ServerConfig.Port))
 }
