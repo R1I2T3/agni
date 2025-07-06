@@ -1,8 +1,9 @@
 services:
-  agni:
-    build: .
+  agni-backend:
+    build:
+      context: .
     ports:
-      - "8080:8080"  
+      - "8080:8080"
     env_file:
       - .env
     environment:
@@ -12,18 +13,13 @@ services:
       # Redis Configuration
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      # - REDIS_PASSWORD=
-      # - REDIS_DB=0
-      # - REDIS_DIAL_TIMEOUT=5s
-      # - REDIS_READ_TIMEOUT=5s
-      # - REDIS_WRITE_TIMEOUT=5s
       
       # SQLite Configuration
       - SQLITE_DATABASE_PATH=/app/data/agni.db
       - SQLITE_LOG_LEVEL=info
       
       # CORS Configuration
-      - CORS_ORIGINS=*
+      - CORS_ORIGINS=http://localhost:5173
       - CORS_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS
       - CORS_HEADERS=Content-Type,Authorization
       - CORS_CREDENTIALS=false
@@ -41,6 +37,20 @@ services:
     networks:
       - agni-network
 
+  agni-frontend:
+    image: node:22-alpine3.20
+    working_dir: /web
+    ports:
+      - "3000:3000"  # Vite dev server
+    volumes:
+      - ./web:/web
+      - /web/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - agni-backend
+    networks:
+      - agni-network
+
   redis:
     image: redis:7-alpine
     ports:
@@ -51,7 +61,6 @@ services:
     networks:
       - agni-network
     command: redis-server --appendonly yes
-
 
 volumes:
   agni_data:
