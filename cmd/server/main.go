@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,7 @@ func main() {
 		ReadTimeout:  envConfig.RedisEnvConfig.ReadTimeout,
 		WriteTimeout: envConfig.RedisEnvConfig.WriteTimeout,
 	}
+	fmt.Println("Redis Config:", redisConfig)
 	sqliteConfig := db.SQLiteConfig{
 		DatabasePath: envConfig.SQLiteEnvConfig.DatabasePath,
 		LogLevel:     config.GetLogLevel(envConfig.SQLiteEnvConfig.LogLevel),

@@ -21,7 +21,7 @@ type SQLiteConfig struct {
 }
 
 // InitSQLite initializes SQLite connection
-func InitSQLite(config SQLiteConfig) error {
+func InitSQLite(config SQLiteConfig, models ...interface{}) error {
 	// Ensure directory exists
 	if err := ensureDirectoryExists(config.DatabasePath); err != nil {
 		return fmt.Errorf("failed to create database directory: %w", err)
@@ -41,6 +41,14 @@ func InitSQLite(config SQLiteConfig) error {
 	// Test connection
 	if err := PingSQLite(); err != nil {
 		return fmt.Errorf("failed to ping SQLite database: %w", err)
+	}
+
+	// Run auto migrations
+	if len(models) > 0 {
+		if err := SQLiteDB.AutoMigrate(models...); err != nil {
+			return fmt.Errorf("failed to run auto migrations: %w", err)
+		}
+		log.Printf("✅ Auto migrations completed successfully")
 	}
 
 	log.Printf("✅ SQLite connected successfully at %s", config.DatabasePath)
