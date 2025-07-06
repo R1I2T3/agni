@@ -81,9 +81,23 @@ type ServerEnvConfig struct {
 	Port string
 }
 
+type AdminEnvConfig struct {
+	Admin_Username string
+	Admin_Password string
+	JWT_Secret     string
+}
+
 func GetServerEnvConfig() ServerEnvConfig {
 	return ServerEnvConfig{
 		Port: GetEnv("SERVER_PORT", "3000"),
+	}
+}
+
+func GetAdminEnvConfig() AdminEnvConfig {
+	return AdminEnvConfig{
+		Admin_Username: GetEnv("ADMIN_USERNAME", "admin"),
+		Admin_Password: GetEnv("ADMIN_PASSWORD", "admin123"),
+		JWT_Secret:     GetEnv("JWT_SECRET", ""),
 	}
 }
 
@@ -110,6 +124,7 @@ type EnvConfig struct {
 	SQLiteEnvConfig SQLiteEnvConfig
 	RedisEnvConfig  RedisEnvConfig
 	CorsEnvConfig   CorsEnvConfig
+	AdminEnvConfig  AdminEnvConfig
 }
 
 func GetEnvConfig() EnvConfig {
@@ -118,6 +133,7 @@ func GetEnvConfig() EnvConfig {
 		SQLiteEnvConfig: GetSQLiteEnvConfig(),
 		RedisEnvConfig:  GetRedisEnvConfig(),
 		CorsEnvConfig:   GetCorsEnvConfig(),
+		AdminEnvConfig:  GetAdminEnvConfig(),
 	}
 }
 
