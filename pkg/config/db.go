@@ -22,7 +22,11 @@ func InitializeRedis(redisConfig db.RedisConfig) {
 }
 
 func InitializeSQLite(sqliteConfig db.SQLiteConfig) {
-	if err := db.InitSQLite(sqliteConfig); err != nil {
+	allModel := []interface{}{
+		&db.Notification{},
+		&db.Application{},
+	}
+	if err := db.InitSQLite(sqliteConfig, allModel...); err != nil {
 		log.Fatalf("Failed to initialize SQLite: %v", err)
 	}
 
