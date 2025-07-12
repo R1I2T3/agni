@@ -1,0 +1,56 @@
+package handlers
+
+import (
+	"log"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+
+	"github.com/r1i2t3/agni/pkg/db"
+	"github.com/r1i2t3/agni/pkg/notification"
+)
+
+type NotificationRequest struct {
+	Channel    notification.NotificationChannel `json:"channel"`
+	Provider   string                           `json:"provider,omitempty"`
+	Recipient  string                           `json:"recipient"`
+	Subject    string                           `json:"subject,omitempty"`
+	Message    string                           `json:"message"`
+	TemplateID string                           `json:"template_id,omitempty"`
+}
+
+func EnqueueNotification(c *fiber.Ctx) error {
+	// Get the application from context (stored by APIKeyAuth middleware)
+	app, ok := c.Locals("application").(*db.Application)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid application context",
+		})
+	}
+
+	log.Printf("API Request from App: %s (ID: %s, API Key: %s)",
+		app.Name, app.ID.String(), app.APIToken)
+
+	var request NotificationRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Use the application data
+	notification := notification.Notification{
+		ID:            notification.GenerateID(),
+		ApplicationID: app.ID.String(),
+		Channel:       request.Channel,
+		Recipient:     request.Recipient,
+		Message:       request.Message,
+		Status:        "queued",
+		CreatedAt:     time.Now(),
+	}
+
+	QueueID, err := db.EnqueueNotification(notification)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to enqueue notification"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Notification queued successfully", "queue_id": QueueID, "status": "queued"})
+}
