@@ -20,10 +20,6 @@ export default defineConfig({
       usePolling: true, // Important for Docker on Windows
     },
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
