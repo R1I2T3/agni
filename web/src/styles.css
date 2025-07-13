@@ -1,21 +1,6 @@
-@import "tailwindcss";
-
+@import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));
-
-body {
-  @apply m-0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
-}
 
 :root {
   --background: #ffffff;
@@ -50,17 +35,27 @@ code {
   --sidebar-accent-foreground: #41363c;
   --sidebar-border: #ffedef;
   --sidebar-ring: #ff7184;
-  --font-sans: Montserrat, sans-serif;
+  --font-sans: Poppins, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Ubuntu Mono, monospace;
   --radius: 0.625rem;
   --shadow-2xs: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.04);
   --shadow-xs: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.04);
-  --shadow-sm: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-md: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 2px 4px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-lg: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 4px 6px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-xl: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 8px 10px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-sm:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-md:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 2px 4px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-lg:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 4px 6px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-xl:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 8px 10px -4px hsl(0 0% 10.1961% / 0.09);
   --shadow-2xl: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.22);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
@@ -99,17 +94,27 @@ code {
   --sidebar-accent-foreground: #2d212a;
   --sidebar-border: #4b3c4a;
   --sidebar-ring: #ff7184;
-  --font-sans: Montserrat, sans-serif;
+  --font-sans: Poppins, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Ubuntu Mono, monospace;
   --radius: 0.625rem;
   --shadow-2xs: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.04);
   --shadow-xs: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.04);
-  --shadow-sm: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-md: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 2px 4px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-lg: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 4px 6px -4px hsl(0 0% 10.1961% / 0.09);
-  --shadow-xl: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09), 0px 8px 10px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-sm:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 1px 2px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-md:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 2px 4px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-lg:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 4px 6px -4px hsl(0 0% 10.1961% / 0.09);
+  --shadow-xl:
+    0px 6px 12px -3px hsl(0 0% 10.1961% / 0.09),
+    0px 8px 10px -4px hsl(0 0% 10.1961% / 0.09);
   --shadow-2xl: 0px 6px 12px -3px hsl(0 0% 10.1961% / 0.22);
 }
 
@@ -164,4 +169,13 @@ code {
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

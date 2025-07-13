@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/r1i2t3/agni/pkg/config"
 	"github.com/r1i2t3/agni/pkg/utils"
@@ -16,6 +18,7 @@ func AdminLogin(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
+	fmt.Println("Received login request:", req)
 	envConfig := config.GetEnvConfig()
 	if req.Username == envConfig.AdminEnvConfig.Admin_Username && req.Password == envConfig.AdminEnvConfig.Admin_Password {
 		token, err := utils.GenerateAdminJWT(req.Username)

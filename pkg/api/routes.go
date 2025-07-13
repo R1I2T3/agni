@@ -18,7 +18,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Get("/health", handlers.HealthCheck)
 
 	// admin auth routes
-	app.Post("/admin/auth/login", handlers.AdminLogin)
-	app.Post("/admin/logout", handlers.AdminLogout)
-	app.Get("/admin/dashboard", middleware.RequireAdmin, handlers.AdminDashBoardRedirect)
+	app.Post("/api/admin/auth/login", handlers.AdminLogin)
+	app.Post("/api/admin/logout", handlers.AdminLogout)
+	app.Get("/api/admin/dashboard", middleware.RequireAdmin, handlers.AdminDashBoardRedirect)
 }
