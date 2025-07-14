@@ -1,8 +1,9 @@
 package db
 
 type ApplicationResponse struct {
-	Name     string `json:"name"`
-	APIToken string `json:"api_token"`
+	Name      string `json:"name"`
+	APIToken  string `json:"api_token"`
+	createdAt string `json:"created_at"`
 }
 
 func CreateApplicationAndApiTokenAndSecret(name string, apiToken string, apiSecret string) error {
@@ -27,8 +28,9 @@ func GetAllApplications() ([]ApplicationResponse, error) {
 	applications := make([]ApplicationResponse, len(unFilteredApplications))
 	for i, app := range unFilteredApplications {
 		applications[i] = ApplicationResponse{
-			Name:     app.Name,
-			APIToken: app.APIToken,
+			Name:      app.Name,
+			APIToken:  app.APIToken,
+			createdAt: app.CreatedAt.String(),
 		}
 	}
 	return applications, nil

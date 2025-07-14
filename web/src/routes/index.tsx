@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import logo from '../logo.svg'
+import AdminPanel from '@/components/admin-panel'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -7,6 +7,6 @@ export const Route = createFileRoute('/')({
 
 function App() {
   return (
-  <h1>App</h1>
+  <AdminPanel/>
   )
 }
