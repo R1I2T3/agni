@@ -3,7 +3,7 @@ package db
 type ApplicationResponse struct {
 	Name      string `json:"name"`
 	APIToken  string `json:"api_token"`
-	createdAt string `json:"created_at"`
+	CreatedAt string `json:"created_at"`
 }
 
 func CreateApplicationAndApiTokenAndSecret(name string, apiToken string, apiSecret string) error {
@@ -30,7 +30,7 @@ func GetAllApplications() ([]ApplicationResponse, error) {
 		applications[i] = ApplicationResponse{
 			Name:      app.Name,
 			APIToken:  app.APIToken,
-			createdAt: app.CreatedAt.String(),
+			CreatedAt: app.CreatedAt.String(),
 		}
 	}
 	return applications, nil

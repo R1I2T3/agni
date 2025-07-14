@@ -21,7 +21,7 @@ type NotificationRequest struct {
 
 func EnqueueNotification(c *fiber.Ctx) error {
 	// Get the application from context (stored by APIKeyAuth middleware)
-	app, ok := c.Locals("application").(*db.Application)
+	app, ok := c.Locals("app").(*db.Application)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid application context",

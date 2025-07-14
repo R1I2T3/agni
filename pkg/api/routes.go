@@ -30,5 +30,5 @@ func SetupRoutes(app *fiber.App) {
 	app.Delete("/api/admin/delete-application", middleware.RequireAdmin, handlers.DeleteApplication)
 
 	// notification routes
-	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.SendNotification)
+	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.EnqueueNotification)
 }
