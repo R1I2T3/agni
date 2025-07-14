@@ -9,7 +9,7 @@ import (
 
 type Application struct {
 	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name          string    `gorm:"type:text"`
+	Name          string    `gorm:"type:text;uniqueIndex"`
 	APIToken      string    `gorm:"type:text;uniqueIndex"`
 	APISecret     string    `gorm:"type:text"`
 	CreatedAt     time.Time

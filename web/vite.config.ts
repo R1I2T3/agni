@@ -19,10 +19,13 @@ export default defineConfig({
     watch: {
       usePolling: true, // Important for Docker on Windows
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
+    proxy:{
+      '/api':{
+        target: 'http://agni-backend:8080', // Adjust to your backend server
+        changeOrigin: true,
+        secure: false, // If your backend is not using HTTPS
+      }
+    }
   },
   resolve: {
     alias: {

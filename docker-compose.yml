@@ -19,7 +19,7 @@ services:
       - SQLITE_LOG_LEVEL=info
       
       # CORS Configuration
-      - CORS_ORIGINS=http://localhost:5173
+      - CORS_ORIGINS=*
       - CORS_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS
       - CORS_HEADERS=Content-Type,Authorization
       - CORS_CREDENTIALS=false

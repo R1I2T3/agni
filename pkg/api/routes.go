@@ -18,16 +18,17 @@ func SetupRoutes(app *fiber.App) {
 	// Health check endpoints
 	app.Get("/health", handlers.HealthCheck)
 
-	// Admin auth routes
-	app.Post("/admin/auth/login", handlers.AdminLogin)
-	app.Post("/admin/logout", handlers.AdminLogout)
-	app.Get("/admin/dashboard", middleware.RequireAdmin, handlers.AdminDashBoardRedirect)
+	// admin auth routes
+	app.Post("/api/admin/auth/login", handlers.AdminLogin)
+	app.Post("/api/admin/logout", handlers.AdminLogout)
+	app.Get("/api/admin/dashboard", middleware.RequireAdmin, handlers.AdminDashBoardRedirect)
 
-	// API v1 group - PROPER VERSIONING
-	v1 := app.Group("/api/v1")
+	// admin functions routes
+	app.Post("/api/admin/create-application", middleware.RequireAdmin, handlers.CreateApplicationAndApiTokenAndSecret)
+	app.Get("/api/admin/applications", middleware.RequireAdmin, handlers.GetAllApplication)
+	app.Put("/api/admin/regenerate-token", middleware.RequireAdmin, handlers.RegenerateToken)
+	app.Delete("/api/admin/delete-application", middleware.RequireAdmin, handlers.DeleteApplication)
 
-	// Notification routes with API key auth
-	notifications := v1.Group("/notifications")
-	notifications.Post("/send", middleware.APIKeyAuth, handlers.EnqueueNotification)
-
+	// notification routes
+	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.SendNotification)
 }
