@@ -46,3 +46,5 @@ build/
 # Temporary files
 *.tmp
 *.temp
+# Temporary directories
+tmp/
