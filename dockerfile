@@ -12,22 +12,30 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-# Optional: run `air` from here (development)
-# ENTRYPOINT ["air"]
+# Optional: run `air` from here (development)  comment it out if in production mode
 
-# Or still build binary for prod
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o agni ./cmd/server
+RUN mkdir -p tmp data
 
-# Stage 2: Minimal final image
-FROM alpine:latest
-RUN apk add --no-cache sqlite-libs
-
-WORKDIR /app
-COPY --from=builder /app/agni .
-# Only needed if you're copying air too
-# COPY --from=builder /root/.air/air /usr/local/bin/
-
-RUN mkdir -p /app/data
+# Set permissions
+RUN chmod 755 tmp
 
 EXPOSE 8080
-CMD ["./agni"]
+
+ENTRYPOINT ["air", "-c", ".air.toml", "-d"]
+
+# # Or still build binary for prod
+# RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o agni ./cmd/server
+
+# # Stage 2: Minimal final image
+# FROM alpine:latest
+# RUN apk add --no-cache sqlite-libs
+
+# WORKDIR /app
+# COPY --from=builder /app/agni .
+# # Only needed if you're copying air too
+# # COPY --from=builder /root/.air/air /usr/local/bin/
+
+# RUN mkdir -p /app/data
+
+# EXPOSE 8080
+# CMD ["./agni"]
