@@ -63,7 +63,6 @@ func (n *Notification) SetChannel(channel string) error {
 }
 
 func GenerateID() string {
-	// This function should generate a unique ID for the notification
-	// Implementation can vary based on your requirements
+	//Temporary ID generation using UUID
 	return uuid.New().String()
 }

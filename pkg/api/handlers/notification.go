@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-
 	"github.com/r1i2t3/agni/pkg/db"
 	"github.com/r1i2t3/agni/pkg/notification"
+	"github.com/r1i2t3/agni/pkg/queue"
 )
 
 type NotificationRequest struct {
@@ -47,7 +47,7 @@ func EnqueueNotification(c *fiber.Ctx) error {
 		CreatedAt:     time.Now(),
 	}
 
-	QueueID, err := db.EnqueueNotification(notification)
+	QueueID, err := queue.EnqueueNotification(notification)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to enqueue notification"})
 	}
