@@ -9,6 +9,7 @@ import (
 	"github.com/r1i2t3/agni/pkg/api"
 	"github.com/r1i2t3/agni/pkg/config"
 	"github.com/r1i2t3/agni/pkg/db"
+	workers "github.com/r1i2t3/agni/pkg/queue/Workers"
 )
 
 func main() {
@@ -46,6 +47,10 @@ func main() {
 
 	// Setup routes
 	api.SetupRoutes(app)
+
+	// start of Notification Workers
+	workerPool := workers.NewWorkerPool(5, "NotificationQueue")
+	workerPool.Start()
 
 	// Start server
 	log.Println("🚀 Starting Agni server on port", envConfig.ServerEnvConfig.Port)
