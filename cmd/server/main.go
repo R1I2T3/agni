@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -49,8 +50,17 @@ func main() {
 	api.SetupRoutes(app)
 
 	// start of Notification Workers
-	workerPool := workers.NewWorkerPool(5, "NotificationQueue")
+	workerPool := workers.NewWorkerPool(5, "QueuedNotification")
 	workerPool.Start()
+
+	// Start Delayed Queue Processor
+	log.Println("⏰ Starting delayed queue processor...")
+	delayedProcessor := workers.NewDelayedQueueProcessor(
+		"QueuedNotification:delayed", // Delayed queue name
+		"QueuedNotification",         // Main queue name
+		time.Second*10,               // Check every 10 seconds
+	)
+	delayedProcessor.Start()
 
 	// Start server
 	log.Println("🚀 Starting Agni server on port", envConfig.ServerEnvConfig.Port)

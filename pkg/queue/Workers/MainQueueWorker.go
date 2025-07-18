@@ -2,6 +2,7 @@ package workers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -84,8 +85,10 @@ func (w *NotificationWorker) Start() {
 // processNext dequeues and processes the next notification
 func (w *NotificationWorker) processNext() error {
 	// Dequeue notification with 5 second timeout
+	fmt.Println("Attempting to dequeue notification...")
 	queuedNotif, err := queue.DequeueNotification(w.QueueName, time.Second*5)
 	if err != nil {
+		fmt.Println("Error dequeuing notification:", err)
 		return err
 	}
 
