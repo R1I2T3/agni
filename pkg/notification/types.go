@@ -50,7 +50,6 @@ type Notification struct {
 	CreatedAt     time.Time           `json:"created_at"`
 	UpdatedAt     time.Time           `json:"updated_at"`
 	Attempts      int                 `json:"attempts"`
-	MaxRetries    int                 `json:"max_retries"`
 }
 
 // SetChannel sets the channel with validation
