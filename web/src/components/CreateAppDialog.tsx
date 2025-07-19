@@ -1,3 +1,5 @@
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
@@ -13,17 +15,28 @@ import {
 type CreateAppDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  appName: string
-  setAppName: (name: string) => void
-  onCreate: () => void
 }
-export function CreateAppDialog({
-  open,
-  onOpenChange,
-  appName,
-  setAppName,
-  onCreate,
-}: CreateAppDialogProps) {
+export function CreateAppDialog({ open, onOpenChange }: CreateAppDialogProps) {
+  const [appName, setAppName] = useState('')
+  const [pending, startTransition] = useTransition()
+  const onCreate = () => {
+    startTransition(async () => {
+      const res = await fetch('/api/admin/create-application', {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          application_name: appName,
+        }),
+      })
+      if (!res.ok || res.status !== 200) {
+        toast.error('Failed to create application')
+      } else {
+        toast.success('Application Created successfully')
+      }
+    })
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-gradient-to-br from-red-950 to-orange-950 border-red-800/50 text-orange-100">
@@ -61,7 +74,7 @@ export function CreateAppDialog({
             onClick={onCreate}
             className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500"
           >
-            Create
+            {pending ? 'Creating...' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>

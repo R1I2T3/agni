@@ -1,116 +1,59 @@
-"use client"
+'use client'
 
-import { useCallback, useState } from "react"
-import {  Plus} from "lucide-react"
-import { toast } from "sonner"
-import Sidebar from "./Sidebar"
-import { CreateAppDialog } from "./CreateAppDialog"
-import { TokenDialog } from "./TokenDialog"
-import { EditDialog } from "./EditDialog"
-import { AppTableRow } from "./ApplicationTableRow"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DeleteDialog } from "@/components/DeleteDialog"
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useCallback, useState } from 'react'
+import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
+import Sidebar from './Sidebar'
+import { CreateAppDialog } from './CreateAppDialog'
+import { TokenDialog } from './TokenDialog'
+import { EditDialog } from './EditDialog'
+import { AppTableRow } from './ApplicationTableRow'
+import type { Application } from '@/lib/type'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { DeleteDialog } from '@/components/DeleteDialog'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
-interface Application {
-  id: string
-  name: string
-  token: string
-  secret: string
-  createdAt: string
-}
-
-function generateRandomString(length: number) {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
-}
-export default function AdminPanel() {
-  const [applications, setApplications] = useState<Array<Application>>([
-    {
-      id: "1",
-      name: "Mobile App",
-      token: "app_token_1234567890abcdef",
-      secret: "secret_abcdef1234567890",
-      createdAt: "2024-01-15",
-    },
-    {
-      id: "2",
-      name: "Web Dashboard",
-      token: "app_token_fedcba0987654321",
-      secret: "secret_0987654321fedcba",
-      createdAt: "2024-01-10",
-    },
-  ])
+export default function AdminPanel({
+  props_application,
+}: {
+  props_application: Array<Application>
+}) {
+  const [applications, setApplications] =
+    useState<Array<Application>>(props_application)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [newAppName, setNewAppName] = useState("")
   const [currentApp, setCurrentApp] = useState<Application | null>(null)
   const [showSecret, setShowSecret] = useState(false)
-  const [deleteAppId, setDeleteAppId] = useState<string | null>(null)
-
   const copyToClipboard = useCallback((text: string, type: string) => {
     navigator.clipboard.writeText(text)
     toast(`Copied to ${type} Clipboard`)
   }, [])
 
-  const handleCreateApplication = useCallback(() => {
-    if (!newAppName.trim()) {
-      toast("Please enter a valid application name.")
-      return
-    }
-    const newApp: Application = {
-      id: Date.now().toString(),
-      name: newAppName,
-      token: `app_token_${generateRandomString(16)}`,
-      secret: `secret_${generateRandomString(16)}`,
-      createdAt: new Date().toISOString().split("T")[0],
-    }
-    setApplications((apps) => [...apps, newApp])
-    setCurrentApp(newApp)
-    setNewAppName("")
-    setIsCreateModalOpen(false)
-    setIsTokenModalOpen(true)
-  }, [newAppName])
-
-  const handleEdit = useCallback((app: Application) => {
-    const updatedApp = {
-      ...app,
-      token: `app_token_${generateRandomString(16)}`,
-      secret: `secret_${generateRandomString(16)}`,
-    }
-    setCurrentApp(updatedApp)
-    setIsEditModalOpen(true)
-  }, [])
-
   const handleSaveEdit = useCallback(() => {
     if (currentApp) {
-      setApplications((apps) => apps.map((app) => (app.id === currentApp.id ? currentApp : app)))
+      setApplications((apps) =>
+        apps.map((app) => (app.name === currentApp.name ? currentApp : app)),
+      )
       setIsEditModalOpen(false)
       setCurrentApp(null)
       setShowSecret(false)
     }
   }, [currentApp])
-
-  const handleDelete = useCallback((id: string) => {
-    setDeleteAppId(id)
-    setIsDeleteModalOpen(true)
-  }, [])
-
-  const confirmDelete = useCallback(() => {
-    if (deleteAppId) {
-      setApplications((apps) => apps.filter((app) => app.id !== deleteAppId))
-      setIsDeleteModalOpen(false)
-      setDeleteAppId(null)
-      toast("Success,Application Deleted Successfully")
-    }
-  }, [deleteAppId])
 
   return (
     <div className="flex h-screen bg-white">
@@ -122,7 +65,9 @@ export default function AdminPanel() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
                 Applications
               </h1>
-              <p className="text-gray-600 mt-1">Manage your application credentials with fire power</p>
+              <p className="text-gray-600 mt-1">
+                Manage your application credentials with fire power
+              </p>
             </div>
             <Button
               onClick={() => setIsCreateModalOpen(true)}
@@ -134,9 +79,12 @@ export default function AdminPanel() {
           </div>
           <Card className="bg-gradient-to-br from-red-950/50 to-orange-950/50 border-red-800/50 backdrop-blur-sm shadow-2xl">
             <CardHeader className="border-b border-red-800/30">
-              <CardTitle className="text-orange-200">Application List</CardTitle>
+              <CardTitle className="text-orange-200">
+                Application List
+              </CardTitle>
               <CardDescription className="text-orange-300/70">
-                All registered applications with their tokens and management options
+                All registered applications with their tokens and management
+                options
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -144,19 +92,18 @@ export default function AdminPanel() {
                 <TableHeader>
                   <TableRow className="border-red-800/30 hover:bg-red-900/20">
                     <TableHead className="text-orange-200">Name</TableHead>
-                    <TableHead className="text-orange-200">Application Token</TableHead>
+                    <TableHead className="text-orange-200">
+                      Application Token
+                    </TableHead>
                     <TableHead className="text-orange-200">Created</TableHead>
-                    <TableHead className="text-right text-orange-200">Actions</TableHead>
+                    <TableHead className="text-right text-orange-200">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {applications.map((app) => (
-                    <AppTableRow
-                      key={app.id}
-                      app={app}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
+                    <AppTableRow key={app.name} app={app} />
                   ))}
                 </TableBody>
               </Table>
@@ -167,9 +114,6 @@ export default function AdminPanel() {
       <CreateAppDialog
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        appName={newAppName}
-        setAppName={setNewAppName}
-        onCreate={handleCreateApplication}
       />
       <TokenDialog
         open={isTokenModalOpen}
@@ -198,11 +142,8 @@ export default function AdminPanel() {
       />
       <DeleteDialog
         open={isDeleteModalOpen}
-        onCancel={() => {
-          setIsDeleteModalOpen(false)
-          setDeleteAppId(null)
-        }}
-        onDelete={confirmDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+        onOpenChange={setIsDeleteModalOpen}
       />
     </div>
   )

@@ -12,11 +12,16 @@ import {
 type DeleteDialogProps = {
   open: boolean
   onCancel: () => void
-  onDelete: () => void
+  onOpenChange: (arg: boolean) => void
 }
-export function DeleteDialog({ open, onCancel, onDelete }: DeleteDialogProps) {
+export function DeleteDialog({
+  open,
+  onCancel,
+  onOpenChange,
+}: DeleteDialogProps) {
+  const onDelete = () => {}
   return (
-    <AlertDialog open={open} onOpenChange={onCancel}>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-gradient-to-br from-red-950 to-orange-950 border-red-800/50 text-orange-100">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-red-300">

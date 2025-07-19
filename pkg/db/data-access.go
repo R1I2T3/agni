@@ -1,9 +1,12 @@
 package db
 
+import "fmt"
+
 type ApplicationResponse struct {
 	Name      string `json:"name"`
 	APIToken  string `json:"api_token"`
-	createdAt string `json:"created_at"`
+	CreatedAt string `json:"created_at"`
+	APISecret string `json:"api_secret"`
 }
 
 func CreateApplicationAndApiTokenAndSecret(name string, apiToken string, apiSecret string) error {
@@ -30,9 +33,11 @@ func GetAllApplications() ([]ApplicationResponse, error) {
 		applications[i] = ApplicationResponse{
 			Name:      app.Name,
 			APIToken:  app.APIToken,
-			createdAt: app.CreatedAt.String(),
+			CreatedAt: app.CreatedAt.String(),
+			APISecret: app.APISecret,
 		}
 	}
+	fmt.Println(applications)
 	return applications, nil
 }
 
@@ -52,6 +57,7 @@ func DeleteApplication(name string) error {
 	if err := something.Where("name = ?", name).Delete(&Application{}).Error; err != nil {
 		return err
 	}
+	fmt.Println("Application deleted successfully")
 	return nil
 }
 
@@ -61,5 +67,6 @@ func GetApplicationByTokenAndSecret(token string, secret string) (*Application, 
 	if err := something.Where("api_token = ? AND api_secret = ?", token, secret).First(&app).Error; err != nil {
 		return nil, err
 	}
+
 	return &app, nil
 }
