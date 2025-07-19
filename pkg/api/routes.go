@@ -14,7 +14,8 @@ func SetupRoutes(app *fiber.App) {
 			"status":  "running",
 		})
 	})
-	// health check end points
+
+	// Health check endpoints
 	app.Get("/health", handlers.HealthCheck)
 
 	// admin auth routes
@@ -29,5 +30,5 @@ func SetupRoutes(app *fiber.App) {
 	app.Delete("/api/admin/delete-application", middleware.RequireAdmin, handlers.DeleteApplication)
 
 	// notification routes
-	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.SendNotification)
+	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.EnqueueNotification)
 }
