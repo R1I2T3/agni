@@ -34,6 +34,8 @@ Thumbs.db
 # Node.js dependencies
 node_modules/
 
+routeTree.gen.ts
+
 # Build directories
 dist/
 build/
