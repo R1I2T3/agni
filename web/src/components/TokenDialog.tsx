@@ -45,14 +45,14 @@ export function TokenDialog({
               <Label className="text-orange-200">Application Token</Label>
               <div className="flex gap-2">
                 <Input
-                  value={app.APIToken}
+                  value={app.api_token}
                   readOnly
                   className="bg-red-900/30 border-red-700/50 text-orange-100"
                 />
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => copyToClipboard(app.APIToken, 'Token')}
+                  onClick={() => copyToClipboard(app.api_token, 'Token')}
                   className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20"
                 >
                   <Copy className="h-4 w-4" />
@@ -64,7 +64,7 @@ export function TokenDialog({
               <div className="flex gap-2">
                 <Input
                   type={showSecret ? 'text' : 'password'}
-                  value={app.APISecret}
+                  value={app.api_secret}
                   readOnly
                   className="bg-red-900/30 border-red-700/50 text-orange-100"
                 />
@@ -83,7 +83,7 @@ export function TokenDialog({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => copyToClipboard(app.APISecret, 'Secret')}
+                  onClick={() => copyToClipboard(app.api_secret, 'Secret')}
                   className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20"
                 >
                   <Copy className="h-4 w-4" />

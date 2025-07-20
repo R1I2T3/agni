@@ -6,8 +6,10 @@ import { formatToDDMMYY } from '@/lib/utils'
 
 type AppTableRowProps = {
   app: Application
+  onEdit: (app: Application) => void
+  onDelete: (app: Application) => void
 }
-export function AppTableRow({ app }: AppTableRowProps) {
+export function AppTableRow({ app, onEdit, onDelete }: AppTableRowProps) {
   return (
     <TableRow key={app.name} className="border-red-800/30 hover:bg-red-900/20">
       <TableCell className="font-medium text-orange-100">{app.name}</TableCell>
@@ -24,7 +26,7 @@ export function AppTableRow({ app }: AppTableRowProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => {}}
+            onClick={() => onEdit(app)}
             className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20 hover:text-orange-200"
           >
             <Edit className="h-4 w-4" />
@@ -32,7 +34,7 @@ export function AppTableRow({ app }: AppTableRowProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => {}}
+            onClick={() => onDelete(app)}
             className="border-red-600/50 text-red-300 hover:bg-red-600/20 hover:text-red-200"
           >
             <Trash2 className="h-4 w-4" />

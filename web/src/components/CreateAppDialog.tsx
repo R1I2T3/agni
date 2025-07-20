@@ -12,11 +12,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+import type { Application } from '@/lib/type'
+
+
 type CreateAppDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  setCurrentApp: (app: Application | null) => void
+  setIsTokenModalOpen: (open: boolean) => void
 }
-export function CreateAppDialog({ open, onOpenChange }: CreateAppDialogProps) {
+export function CreateAppDialog({ open, onOpenChange ,setCurrentApp,setIsTokenModalOpen}: CreateAppDialogProps) {
   const [appName, setAppName] = useState('')
   const [pending, startTransition] = useTransition()
   const onCreate = () => {
@@ -34,6 +39,20 @@ export function CreateAppDialog({ open, onOpenChange }: CreateAppDialogProps) {
         toast.error('Failed to create application')
       } else {
         toast.success('Application Created successfully')
+        const responseData = await res.json()
+        console.log('Response Data:', responseData)
+        const currentapp: Application = {
+          name: appName,
+          api_token: responseData['api-token'],
+          api_secret: responseData['api-secret'],
+          created_at: new Date().toISOString(),
+        }
+        console.log('Current App:', currentapp)
+        setCurrentApp(currentapp)
+        onOpenChange(false)
+        setIsTokenModalOpen(true)
+        
+      
       }
     })
   }

@@ -55,6 +55,21 @@ export default function AdminPanel({
     }
   }, [currentApp])
 
+  // Edit handler
+  const handleEdit = useCallback((app: Application) => {
+    setCurrentApp(app)
+    setIsEditModalOpen(true)
+    setShowSecret(false)
+  }, [])
+
+  // Delete handler
+  const handleDelete = useCallback((app: Application) => {
+    setCurrentApp(app)
+    setIsDeleteModalOpen(true)
+  }, [])
+
+ 
+
   return (
     <div className="flex h-screen bg-white">
       <Sidebar />
@@ -103,7 +118,12 @@ export default function AdminPanel({
                 </TableHeader>
                 <TableBody>
                   {applications.map((app) => (
-                    <AppTableRow key={app.name} app={app} />
+                    <AppTableRow
+                      key={app.name}
+                      app={app}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -114,6 +134,9 @@ export default function AdminPanel({
       <CreateAppDialog
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
+        setCurrentApp={setCurrentApp}
+        setIsTokenModalOpen={setIsTokenModalOpen}
+    
       />
       <TokenDialog
         open={isTokenModalOpen}
