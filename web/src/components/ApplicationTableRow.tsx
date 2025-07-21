@@ -6,8 +6,9 @@ import { formatToDDMMYY } from '@/lib/utils'
 
 type AppTableRowProps = {
   app: Application
-  onEdit: (app: Application) => void
-  onDelete: (app: Application) => void
+  onEdit: () => void
+  onDelete: () => void
+  onTokenClick?: () => void
 }
 export function AppTableRow({ app, onEdit, onDelete }: AppTableRowProps) {
   return (
@@ -26,7 +27,7 @@ export function AppTableRow({ app, onEdit, onDelete }: AppTableRowProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onEdit(app)}
+            onClick={() => onEdit()}
             className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20 hover:text-orange-200"
           >
             <Edit className="h-4 w-4" />
@@ -34,7 +35,7 @@ export function AppTableRow({ app, onEdit, onDelete }: AppTableRowProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onDelete(app)}
+            onClick={() => onDelete()}
             className="border-red-600/50 text-red-300 hover:bg-red-600/20 hover:text-red-200"
           >
             <Trash2 className="h-4 w-4" />

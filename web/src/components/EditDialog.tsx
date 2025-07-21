@@ -1,7 +1,7 @@
-import { Copy, Eye, EyeOff } from 'lucide-react'
-import { Input } from './ui/input'
+import { useTransition } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Button } from './ui/button'
-import { Label } from './ui/label'
 import type { Application } from '@/lib/type'
 import {
   Dialog,
@@ -21,15 +21,31 @@ type EditDialogProps = {
   copyToClipboard: (text: string, type: string) => void
   onSave: () => void
 }
-export function EditDialog({
-  open,
-  onClose,
-  app,
-  showSecret,
-  setShowSecret,
-  copyToClipboard,
-  onSave,
-}: EditDialogProps) {
+export function EditDialog({ open, onClose, app }: EditDialogProps) {
+  const [pending, startTransition] = useTransition()
+  const queryClient = useQueryClient()
+
+  const onUpdate = () => {
+    startTransition(async () => {
+      // Simulate a delete action
+      const res = await fetch('/api/admin/regenerate-token', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ application_name: app?.name }),
+      })
+      if (res.status !== 200) {
+        toast.error('Failed to regenerate token and secret')
+      } else {
+        toast.success('Application Updated successfully')
+        queryClient.invalidateQueries({
+          queryKey: ['applications'],
+        })
+      }
+      onClose()
+    })
+  }
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-gradient-to-br from-red-950 to-orange-950 border-red-800/50 text-orange-100">
@@ -38,70 +54,10 @@ export function EditDialog({
             🔥 Edit Application
           </DialogTitle>
           <DialogDescription className="text-orange-300/70">
-            New credentials have been generated for this application.
+            New credentials will be generated for this application.
           </DialogDescription>
         </DialogHeader>
-        {app && (
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-orange-200">Application Name</Label>
-              <Input
-                value={app.name}
-                readOnly
-                className="bg-red-900/30 border-red-700/50 text-orange-100"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-orange-200">New Application Token</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={app.api_token}
-                  readOnly
-                  className="bg-red-900/30 border-red-700/50 text-orange-100"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => copyToClipboard(app.api_token, 'Token')}
-                  className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-orange-200">New Application Secret</Label>
-              <div className="flex gap-2">
-                <Input
-                  type={showSecret ? 'text' : 'password'}
-                  value={app.api_secret}
-                  readOnly
-                  className="bg-red-900/30 border-red-700/50 text-orange-100"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowSecret(!showSecret)}
-                  className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20"
-                >
-                  {showSecret ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => copyToClipboard(app.api_secret, 'Secret')}
-                  className="border-orange-600/50 text-orange-300 hover:bg-orange-600/20"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+
         <DialogFooter>
           <Button
             variant="outline"
@@ -111,10 +67,10 @@ export function EditDialog({
             Cancel
           </Button>
           <Button
-            onClick={onSave}
+            onClick={onUpdate}
             className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500"
           >
-            Save Changes
+            {pending ? 'Updating...' : 'Update applications'}
           </Button>
         </DialogFooter>
       </DialogContent>

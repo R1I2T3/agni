@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import Sidebar from './Sidebar'
@@ -33,6 +33,9 @@ export default function AdminPanel({
 }) {
   const [applications, setApplications] =
     useState<Array<Application>>(props_application)
+  useEffect(() => {
+    setApplications(props_application)
+  }, [props_application])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -54,21 +57,6 @@ export default function AdminPanel({
       setShowSecret(false)
     }
   }, [currentApp])
-
-  // Edit handler
-  const handleEdit = useCallback((app: Application) => {
-    setCurrentApp(app)
-    setIsEditModalOpen(true)
-    setShowSecret(false)
-  }, [])
-
-  // Delete handler
-  const handleDelete = useCallback((app: Application) => {
-    setCurrentApp(app)
-    setIsDeleteModalOpen(true)
-  }, [])
-
- 
 
   return (
     <div className="flex h-screen bg-white">
@@ -121,8 +109,19 @@ export default function AdminPanel({
                     <AppTableRow
                       key={app.name}
                       app={app}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
+                      onEdit={() => {
+                        setIsEditModalOpen(true)
+                        setCurrentApp(app)
+                      }}
+                      onDelete={() => {
+                        setIsDeleteModalOpen(true)
+                        setCurrentApp(app)
+                      }}
+                      onTokenClick={() => {
+                        setCurrentApp(app)
+                        setIsTokenModalOpen(true)
+                        setShowSecret(false)
+                      }}
                     />
                   ))}
                 </TableBody>
@@ -134,9 +133,6 @@ export default function AdminPanel({
       <CreateAppDialog
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        setCurrentApp={setCurrentApp}
-        setIsTokenModalOpen={setIsTokenModalOpen}
-    
       />
       <TokenDialog
         open={isTokenModalOpen}
@@ -167,6 +163,7 @@ export default function AdminPanel({
         open={isDeleteModalOpen}
         onCancel={() => setIsDeleteModalOpen(false)}
         onOpenChange={setIsDeleteModalOpen}
+        appId={currentApp?.name || ''}
       />
     </div>
   )

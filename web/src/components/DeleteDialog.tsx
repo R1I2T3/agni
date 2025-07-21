@@ -1,3 +1,6 @@
+import { useTransition } from 'react'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,13 +16,37 @@ type DeleteDialogProps = {
   open: boolean
   onCancel: () => void
   onOpenChange: (arg: boolean) => void
+  appId: string
 }
 export function DeleteDialog({
   open,
   onCancel,
   onOpenChange,
+  appId,
 }: DeleteDialogProps) {
-  const onDelete = () => {}
+  const [pending, startTransition] = useTransition()
+  const queryClient = useQueryClient()
+  const onDelete = () => {
+    startTransition(async () => {
+      // Simulate a delete action
+      const res = await fetch('/api/admin/delete-application', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ application_name: appId }),
+      })
+      if (res.status !== 200) {
+        toast.error('Failed to delete application')
+      } else {
+        toast.success('Application deleted successfully')
+        queryClient.invalidateQueries({
+          queryKey: ['applications'],
+        })
+      }
+      onOpenChange(false)
+    })
+  }
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-gradient-to-br from-red-950 to-orange-950 border-red-800/50 text-orange-100">
@@ -43,7 +70,7 @@ export function DeleteDialog({
             onClick={onDelete}
             className="bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500"
           >
-            Delete
+            {pending ? 'Deleting...' : 'Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
