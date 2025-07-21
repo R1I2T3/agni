@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -64,4 +65,8 @@ func (n *Notification) SetChannel(channel string) error {
 func GenerateID() string {
 	//Temporary ID generation using UUID
 	return uuid.New().String()
+}
+
+type Notifier interface {
+	Send(ctx context.Context, notification *Notification) error
 }

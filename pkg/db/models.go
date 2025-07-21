@@ -28,7 +28,8 @@ type Notification struct {
 	ApplicationID uuid.UUID `gorm:"type:uuid;index"` // FK
 	QueueID       string    `gorm:"type:text;uniqueIndex"`
 	Type          string    `gorm:"type:text"`
-	Recipient     string    `gorm:"type:text"`
+	Recipient     string    `gorm:"type:text"` // User id in case of in app notifications
+	Subject       string    `gorm:"type:text"`
 	Message       string    `gorm:"type:text"`
 	Status        string    `gorm:"type:text"`
 	Attempts      int
