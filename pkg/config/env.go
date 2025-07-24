@@ -119,12 +119,33 @@ func GetCorsEnvConfig() CorsEnvConfig {
 	}
 }
 
+type EmailEnvConfig struct {
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
+	FromAddress  string
+	UseTLS       bool
+}
+
+func GetEmailEnvConfig() EmailEnvConfig {
+	return EmailEnvConfig{
+		SMTPHost:     GetEnv("EMAIL_SMTP_HOST", "smtp.example.com"),
+		SMTPPort:     GetEnv("EMAIL_SMTP_PORT", "587"),
+		SMTPUsername: GetEnv("EMAIL_SMTP_USERNAME", ""),
+		SMTPPassword: GetEnv("EMAIL_SMTP_PASSWORD", ""),
+		FromAddress:  GetEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
+		UseTLS:       GetEnvAsBool("EMAIL_USE_TLS", true),
+	}
+}
+
 type EnvConfig struct {
 	ServerEnvConfig ServerEnvConfig
 	SQLiteEnvConfig SQLiteEnvConfig
 	RedisEnvConfig  RedisEnvConfig
 	CorsEnvConfig   CorsEnvConfig
 	AdminEnvConfig  AdminEnvConfig
+	EmailEnvConfig  EmailEnvConfig
 }
 
 func GetEnvConfig() EnvConfig {
@@ -134,6 +155,7 @@ func GetEnvConfig() EnvConfig {
 		RedisEnvConfig:  GetRedisEnvConfig(),
 		CorsEnvConfig:   GetCorsEnvConfig(),
 		AdminEnvConfig:  GetAdminEnvConfig(),
+		EmailEnvConfig:  GetEmailEnvConfig(),
 	}
 }
 

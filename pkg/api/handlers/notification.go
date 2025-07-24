@@ -11,12 +11,13 @@ import (
 )
 
 type NotificationRequest struct {
-	Channel    notification.NotificationChannel `json:"channel"`
-	Provider   string                           `json:"provider,omitempty"`
-	Recipient  string                           `json:"recipient"`
-	Subject    string                           `json:"subject,omitempty"`
-	Message    string                           `json:"message"`
-	TemplateID string                           `json:"template_id,omitempty"`
+	Channel            notification.NotificationChannel `json:"channel"`
+	Provider           string                           `json:"provider,omitempty"`
+	Recipient          string                           `json:"recipient"`
+	Subject            string                           `json:"subject,omitempty"`
+	Message            string                           `json:"message"`
+	MessageContentType string                           `json:"message_content_type,omitempty"`
+	TemplateID         string                           `json:"template_id,omitempty"`
 }
 
 func EnqueueNotification(c *fiber.Ctx) error {
@@ -38,15 +39,17 @@ func EnqueueNotification(c *fiber.Ctx) error {
 
 	// Use the application data
 	notification := notification.Notification{
-		ID:            notification.GenerateID(),
-		ApplicationID: app.ID.String(),
-		Channel:       request.Channel,
-		Recipient:     request.Recipient,
-		Message:       request.Message,
-		Status:        "queued",
-		CreatedAt:     time.Now(),
+		ID:                 notification.GenerateID(),
+		ApplicationID:      app.ID.String(),
+		Provider:           request.Provider,
+		Channel:            request.Channel,
+		Recipient:          request.Recipient,
+		Message:            request.Message,
+		MessageContentType: request.MessageContentType,
+		Subject:            request.Subject,
+		Status:             "queued",
+		CreatedAt:          time.Now(),
 	}
-
 	QueueID, err := queue.EnqueueNotification(notification)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to enqueue notification"})

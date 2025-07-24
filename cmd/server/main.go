@@ -35,6 +35,9 @@ func main() {
 	config.InitializeRedis(redisConfig)
 	config.InitializeSQLite(sqliteConfig)
 
+	// Initialize channels
+	config.InitializeEmailChannel(&envConfig.EmailEnvConfig)
+
 	// Create Fiber app
 	app := fiber.New()
 

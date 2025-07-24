@@ -38,19 +38,20 @@ func ValidateChannel(channel string) error {
 }
 
 type Notification struct {
-	ID            string              `json:"id"`
-	ApplicationID string              `json:"application_id"`
-	QueueID       string              `gorm:"type:text;uniqueIndex" json:"queue_id"`
-	Channel       NotificationChannel `json:"channel" validate:"required,oneof=email sms push webhook"`
-	Provider      string              `json:"provider"`
-	Recipient     string              `json:"recipient" validate:"required"`
-	Subject       string              `json:"subject,omitempty"`
-	TemplateID    string              `json:"template_id,omitempty"`
-	Message       string              `json:"message" validate:"required"`
-	Status        string              `json:"status"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
-	Attempts      int                 `json:"attempts"`
+	ID                 string              `json:"id"`
+	ApplicationID      string              `json:"application_id"`
+	QueueID            string              `gorm:"type:text;uniqueIndex" json:"queue_id"`
+	Channel            NotificationChannel `json:"channel" validate:"required,oneof=email sms push webhook"`
+	Provider           string              `json:"provider"`
+	Recipient          string              `json:"recipient" validate:"required"`
+	Subject            string              `json:"subject,omitempty"`
+	TemplateID         string              `json:"template_id,omitempty"`
+	Message            string              `json:"message" validate:"required"`
+	MessageContentType string              `json:"message_content_type,omitempty"`
+	Status             string              `json:"status"`
+	CreatedAt          time.Time           `json:"created_at"`
+	UpdatedAt          time.Time           `json:"updated_at"`
+	Attempts           int                 `json:"attempts"`
 }
 
 // SetChannel sets the channel with validation

@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/queue"
 )
 
@@ -92,16 +93,33 @@ func (w *NotificationWorker) processNext() error {
 		return err
 	}
 
-	log.Printf("📝 Worker %d processing notification %s for %s",
-		w.WorkerID, queuedNotif.ID, queuedNotif.Recipient)
+	log.Printf("📝 Worker %d processing notification %s for %s, subject: %s",
+		w.WorkerID, queuedNotif.ID, queuedNotif.Recipient, queuedNotif.Subject)
 
 	// Process the notification
 	return w.processNotification(queuedNotif)
 }
-
 func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification) error {
-
 	log.Printf("🔔 Worker %d processing notification %s", w.WorkerID, notif.ID)
+
+	switch notif.Channel {
+	case "email":
+		// Process email notification
+		log.Printf("📧 Worker %d sending email to %s with subject %s", w.WorkerID, notif.Recipient, notif.Subject)
+
+		email.ProcessEmailNotifications(notif)
+	case "sms":
+		// Process SMS notification
+		log.Printf("📱 Worker %d sending SMS to %s", w.WorkerID, notif.Recipient)
+		// TODO: Add SMS sending logic here
+	case "push":
+		// Process push notification
+		log.Printf("📲 Worker %d sending push notification to %s", w.WorkerID, notif.Recipient)
+		// TODO: Add push notification logic here
+	default:
+		log.Printf("⚠️ Worker %d unknown notification channel: %s", w.WorkerID, notif.Channel)
+		return fmt.Errorf("unknown notification channel: %s", notif.Channel)
+	}
 
 	return nil
 }
