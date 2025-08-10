@@ -65,18 +65,6 @@ func GetRedisEnvConfig() RedisEnvConfig {
 	}
 }
 
-type SQLiteEnvConfig struct {
-	DatabasePath string
-	LogLevel     string
-}
-
-func GetSQLiteEnvConfig() SQLiteEnvConfig {
-	return SQLiteEnvConfig{
-		DatabasePath: GetEnv("SQLITE_DATABASE_PATH", "./data/agni.db"),
-		LogLevel:     GetEnv("SQLITE_LOG_LEVEL", "info"), // Default to "info" if not set
-	}
-}
-
 type ServerEnvConfig struct {
 	Port string
 }
@@ -141,7 +129,6 @@ func GetEmailEnvConfig() EmailEnvConfig {
 
 type EnvConfig struct {
 	ServerEnvConfig ServerEnvConfig
-	SQLiteEnvConfig SQLiteEnvConfig
 	RedisEnvConfig  RedisEnvConfig
 	CorsEnvConfig   CorsEnvConfig
 	AdminEnvConfig  AdminEnvConfig
@@ -151,7 +138,6 @@ type EnvConfig struct {
 func GetEnvConfig() EnvConfig {
 	return EnvConfig{
 		ServerEnvConfig: GetServerEnvConfig(),
-		SQLiteEnvConfig: GetSQLiteEnvConfig(),
 		RedisEnvConfig:  GetRedisEnvConfig(),
 		CorsEnvConfig:   GetCorsEnvConfig(),
 		AdminEnvConfig:  GetAdminEnvConfig(),

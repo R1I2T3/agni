@@ -1,5 +1,3 @@
-// Create API key middleware first
-// filepath: c:\Users\Varun\Desktop\repos\agni\pkg\api\middleware\apikey.go
 package middleware
 
 import (
@@ -17,8 +15,8 @@ func APIKeyAuth(c *fiber.Ctx) error {
 
 	// Validate API key against applications table
 	var app db.Application
-	sqliteDB := db.GetSQLiteDB()
-	err := sqliteDB.Where("APIToken = ?", apiKey).First(&app).Error
+	mySQLDB := db.GetMySQLDB()
+	err := mySQLDB.Where("APIToken = ?", apiKey).First(&app).Error
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid API key",

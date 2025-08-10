@@ -21,21 +21,21 @@ func InitializeRedis(redisConfig db.RedisConfig) {
 	}
 }
 
-func InitializeSQLite(sqliteConfig db.SQLiteConfig) {
+func InitializeMySQL(mySQLConfig db.MySQLConfig) {
 	allModel := []interface{}{
 		&db.Notification{},
 		&db.Application{},
 	}
-	if err := db.InitSQLite(sqliteConfig, allModel...); err != nil {
-		log.Fatalf("Failed to initialize SQLite: %v", err)
+	if err := db.InitMySQL(mySQLConfig, allModel...); err != nil {
+		log.Fatalf("Failed to initialize MySQL: %v", err)
 	}
 
-	sqliteHealth := db.SQLiteHealthCheck()
-	log.Printf("SQLite Health Check: %+v", sqliteHealth)
+	mySQLHealth := db.MySQLHealthCheck()
+	log.Printf("MySQL Health Check: %+v", mySQLHealth)
 
-	if sqliteHealth["ping"] == true {
-		log.Println("✅ SQLite is healthy")
+	if mySQLHealth["ping"] == true {
+		log.Println("✅ MySQL is healthy")
 	} else {
-		log.Fatalf("❌ SQLite health check failed: %v", sqliteHealth)
+		log.Fatalf("❌ MySQL health check failed: %v", mySQLHealth)
 	}
 }

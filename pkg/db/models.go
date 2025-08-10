@@ -8,27 +8,29 @@ import (
 )
 
 type Application struct {
-	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name          string    `gorm:"type:text;uniqueIndex"`
-	APIToken      string    `gorm:"type:text;uniqueIndex"`
-	APISecret     string    `gorm:"type:text"`
+	// Change `type:uuid` to `type:varchar(36)`
+	ID            uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	Name          string    `gorm:"type:varchar(255);uniqueIndex"`
+	APIToken      string    `gorm:"type:varchar(255);uniqueIndex"`
+	APISecret     string    `gorm:"type:varchar(255)"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	Notifications []Notification `gorm:"foreignKey:ApplicationID"`
 }
 
-// BeforeCreate hook to set UUID before inserting
+// BeforeCreate hook is correct and needs no changes
 func (app *Application) BeforeCreate(tx *gorm.DB) (err error) {
 	app.ID = uuid.New()
 	return
 }
 
 type Notification struct {
-	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
-	ApplicationID uuid.UUID `gorm:"type:uuid;index"` // FK
-	QueueID       string    `gorm:"type:text;uniqueIndex"`
+	// Change `type:uuid` to `type:varchar(36)`
+	ID            uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	ApplicationID uuid.UUID `gorm:"type:varchar(36);index"` // FK
+	QueueID       string    `gorm:"type:varchar(100);uniqueIndex"`
 	Type          string    `gorm:"type:text"`
-	Recipient     string    `gorm:"type:text"` // User id in case of in app notifications
+	Recipient     string    `gorm:"type:text"`
 	Subject       string    `gorm:"type:text"`
 	Message       string    `gorm:"type:text"`
 	Status        string    `gorm:"type:text"`
@@ -38,7 +40,7 @@ type Notification struct {
 	ProcessedAt   *time.Time
 }
 
-// BeforeCreate hook to set UUID
+// BeforeCreate hook is correct and needs no changes
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 	n.ID = uuid.New()
 	return

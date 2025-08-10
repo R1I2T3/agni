@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,17 +27,23 @@ func main() {
 		WriteTimeout: envConfig.RedisEnvConfig.WriteTimeout,
 	}
 	fmt.Println("Redis Config:", redisConfig)
-	sqliteConfig := db.SQLiteConfig{
-		DatabasePath: envConfig.SQLiteEnvConfig.DatabasePath,
-		LogLevel:     config.GetLogLevel(envConfig.SQLiteEnvConfig.LogLevel),
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		os.Getenv("MYSQL_USER"),
+		os.Getenv("MYSQL_ROOT_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("MYSQL_DATABASE"),
+	)
+	fmt.Println("MySQL DSN:", dsn)
+	mySQLConfig := db.MySQLConfig{
+		DSN: dsn,
 	}
 
 	// Initialize databases
 	config.InitializeRedis(redisConfig)
-	config.InitializeSQLite(sqliteConfig)
+	config.InitializeMySQL(mySQLConfig)
 
 	// Initialize channels
-	config.InitializeEmailChannel(&envConfig.EmailEnvConfig)
+	// config.InitializeEmailChannel(&envConfig.EmailEnvConfig)
 
 	// Create Fiber app
 	app := fiber.New()

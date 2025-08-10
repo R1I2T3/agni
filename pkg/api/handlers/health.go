@@ -9,12 +9,12 @@ import (
 
 func HealthCheck(c *fiber.Ctx) error {
 	redisHealth := db.RedisHealthCheck()
-	sqliteHealth := db.SQLiteHealthCheck()
+	mySQLHealth := db.MySQLHealthCheck()
 
 	overallStatus := "healthy"
 	statusCode := 200
 
-	if redisHealth["status"] != "healthy" || sqliteHealth["status"] != "healthy" {
+	if redisHealth["status"] != "healthy" || mySQLHealth["status"] != "healthy" {
 		overallStatus = "unhealthy"
 		statusCode = 503
 	}
@@ -23,7 +23,7 @@ func HealthCheck(c *fiber.Ctx) error {
 		"service":   "Agni Notification Engine",
 		"status":    overallStatus,
 		"redis":     redisHealth,
-		"sqlite":    sqliteHealth,
+		"mysql":     mySQLHealth,
 		"timestamp": time.Now().Format(time.RFC3339),
 	})
 }

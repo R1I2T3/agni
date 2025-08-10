@@ -15,7 +15,7 @@ func CreateApplicationAndApiTokenAndSecret(name string, apiToken string, apiSecr
 		APIToken:  apiToken,
 		APISecret: apiSecret,
 	}
-	something := GetSQLiteDB()
+	something := GetMySQLDB()
 	if err := something.Create(&app).Error; err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func CreateApplicationAndApiTokenAndSecret(name string, apiToken string, apiSecr
 
 func GetAllApplications() ([]ApplicationResponse, error) {
 	var unFilteredApplications []Application
-	something := GetSQLiteDB()
+	something := GetMySQLDB()
 	if err := something.Find(&unFilteredApplications).Error; err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func GetAllApplications() ([]ApplicationResponse, error) {
 }
 
 func UpdateApplicationTokenAndSecret(name string, newToken string, newSecret string) error {
-	something := GetSQLiteDB()
+	something := GetMySQLDB()
 	if err := something.Model(&Application{}).Where("name = ?", name).Updates(Application{
 		APIToken:  newToken,
 		APISecret: newSecret,
@@ -53,7 +53,7 @@ func UpdateApplicationTokenAndSecret(name string, newToken string, newSecret str
 }
 
 func DeleteApplication(name string) error {
-	something := GetSQLiteDB()
+	something := GetMySQLDB()
 	if err := something.Where("name = ?", name).Delete(&Application{}).Error; err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func DeleteApplication(name string) error {
 
 func GetApplicationByTokenAndSecret(token string, secret string) (*Application, error) {
 	var app Application
-	something := GetSQLiteDB()
+	something := GetMySQLDB()
 	if err := something.Where("api_token = ? AND api_secret = ?", token, secret).First(&app).Error; err != nil {
 		return nil, err
 	}
