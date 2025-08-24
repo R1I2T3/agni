@@ -1,59 +1,44 @@
+version: "3.9"
+
 services:
   agni-backend:
     build:
       context: .
+    container_name: agni-backend
     ports:
       - "8080:8080"
     env_file:
       - .env
-    environment:
-      # Server Configuration
-      - SERVER_PORT=8080
-      
-      # Redis Configuration
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      
-      # SQLite Configuration
-      - SQLITE_DATABASE_PATH=/app/data/agni.db
-      - SQLITE_LOG_LEVEL=info
-      
-      # CORS Configuration
-      - CORS_ORIGINS=*
-      - CORS_METHODS=GET,POST,PUT,PATCH,DELETE,OPTIONS
-      - CORS_HEADERS=Content-Type,Authorization
-      - CORS_CREDENTIALS=false
-      - CORS_MAX_AGE=300
-      
-      # ENV secrets
-      - ADMIN_USERNAME=${ADMIN_USERNAME}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
     volumes:
-      - .:/app #commentout for production
-      - agni_data:/app/data
+      - .:/app
     depends_on:
-      - redis
+      agni-mysql:
+        condition: service_healthy
+      agni-redis:
+        condition: service_started
     restart: unless-stopped
     networks:
       - agni-network
 
   agni-frontend:
     image: node:22-alpine3.20
+    container_name: agni-frontend
     working_dir: /web
     ports:
-      - "3000:3000"  # Vite dev server
+      - "3000:3000"
     volumes:
       - ./web:/web
       - /web/node_modules
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     depends_on:
       - agni-backend
+    restart: unless-stopped
     networks:
       - agni-network
 
-  redis:
-    image: redis:7-alpine
+  agni-redis:
+    image: redis
+    container_name: agni-redis
     ports:
       - "6379:6379"
     volumes:
@@ -63,9 +48,30 @@ services:
       - agni-network
     command: redis-server --appendonly yes
 
+  agni-mysql:
+    image: mysql
+    container_name: agni-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - agni-network
+
 volumes:
-  agni_data:
   redis_data:
+  mysql_data:
 
 networks:
   agni-network:
