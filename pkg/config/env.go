@@ -139,6 +139,18 @@ func GetEmailEnvConfig() EmailEnvConfig {
 	}
 }
 
+type ResendEnvConfig struct {
+	APIKey      string
+	FromAddress string
+}
+
+func GetResendEnvConfig() ResendEnvConfig {
+	return ResendEnvConfig{
+		APIKey:      GetEnv("RESEND_API_KEY", ""),
+		FromAddress: GetEnv("RESEND_FROM_ADDRESS", ""),
+	}
+}
+
 type EnvConfig struct {
 	ServerEnvConfig ServerEnvConfig
 	SQLiteEnvConfig SQLiteEnvConfig
@@ -146,6 +158,7 @@ type EnvConfig struct {
 	CorsEnvConfig   CorsEnvConfig
 	AdminEnvConfig  AdminEnvConfig
 	EmailEnvConfig  EmailEnvConfig
+	ResendEnvConfig ResendEnvConfig
 }
 
 func GetEnvConfig() EnvConfig {
@@ -156,6 +169,7 @@ func GetEnvConfig() EnvConfig {
 		CorsEnvConfig:   GetCorsEnvConfig(),
 		AdminEnvConfig:  GetAdminEnvConfig(),
 		EmailEnvConfig:  GetEmailEnvConfig(),
+		ResendEnvConfig: GetResendEnvConfig(),
 	}
 }
 

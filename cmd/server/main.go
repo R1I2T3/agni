@@ -37,6 +37,7 @@ func main() {
 
 	// Initialize channels
 	config.InitializeEmailChannel(&envConfig.EmailEnvConfig)
+	config.InitializeResendProvider(&envConfig.ResendEnvConfig)
 
 	// Create Fiber app
 	app := fiber.New()

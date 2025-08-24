@@ -7,6 +7,7 @@ import (
 	"net/smtp"
 
 	"github.com/r1i2t3/agni/pkg/notification"
+	"github.com/r1i2t3/agni/pkg/notification/channels/email/EmailProviders"
 	"github.com/r1i2t3/agni/pkg/queue"
 )
 
@@ -79,8 +80,19 @@ func ProcessEmailNotifications(notif *queue.QueuedNotification) {
 		if err != nil {
 			log.Printf("Error sending email: %v", err)
 		}
-	case "Resend":
-		log.Printf("not implemented yet")
+	case "Resend": //
+		EmailProviders.Client.Send(context.Background(), &notification.Notification{
+			ID:                 notif.ID,
+			Recipient:          notif.Recipient,
+			Subject:            notif.Subject,
+			Message:            notif.Message,
+			Provider:           notif.Provider,
+			Status:             notif.Status,
+			CreatedAt:          notif.CreatedAt,
+			MessageContentType: notif.MessageContentType,
+			TemplateID:         notif.TemplateID,
+		})
+
 	// more providers can be added here
 	default:
 		log.Printf("Unknown email provider: %s", notif.Provider)
