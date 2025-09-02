@@ -23,8 +23,8 @@ func InitializeRedis(redisConfig db.RedisConfig) {
 
 func InitializeMySQL(mySQLConfig db.MySQLConfig) {
 	allModel := []interface{}{
-		&db.Notification{},
 		&db.Application{},
+		&db.Notification{},
 	}
 	if err := db.InitMySQL(mySQLConfig, allModel...); err != nil {
 		log.Fatalf("Failed to initialize MySQL: %v", err)

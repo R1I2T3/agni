@@ -77,7 +77,7 @@ type AdminEnvConfig struct {
 
 func GetServerEnvConfig() ServerEnvConfig {
 	return ServerEnvConfig{
-		Port: GetEnv("SERVER_PORT", "3000"),
+		Port: GetEnv("SERVER_PORT", "8080"),
 	}
 }
 
