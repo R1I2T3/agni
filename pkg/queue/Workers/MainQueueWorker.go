@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/r1i2t3/agni/pkg/db"
+	"github.com/r1i2t3/agni/pkg/notification"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/queue"
 )
@@ -101,13 +103,14 @@ func (w *NotificationWorker) processNext() error {
 }
 func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification) error {
 	log.Printf("🔔 Worker %d processing notification %s", w.WorkerID, notif.ID)
-
+	var err error
+	var sentNotification *notification.Notification
 	switch notif.Channel {
 	case "email":
 		// Process email notification
 		log.Printf("📧 Worker %d sending email to %s with subject %s", w.WorkerID, notif.Recipient, notif.Subject)
 
-		email.ProcessEmailNotifications(notif)
+		sentNotification, err = email.ProcessEmailNotifications(notif)
 	case "sms":
 		// Process SMS notification
 		log.Printf("📱 Worker %d sending SMS to %s", w.WorkerID, notif.Recipient)
@@ -119,6 +122,14 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 	default:
 		log.Printf("⚠️ Worker %d unknown notification channel: %s", w.WorkerID, notif.Channel)
 		return fmt.Errorf("unknown notification channel: %s", notif.Channel)
+	}
+
+	if err == nil {
+		database := db.GetMySQLDB()
+		err := database.Create(&sentNotification).Error
+		if err != nil {
+			log.Printf("Error saving to DB: %v", err)
+		}
 	}
 
 	return nil

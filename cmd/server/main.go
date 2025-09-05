@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,14 +25,20 @@ func main() {
 		ReadTimeout:  envConfig.RedisEnvConfig.ReadTimeout,
 		WriteTimeout: envConfig.RedisEnvConfig.WriteTimeout,
 	}
+
 	fmt.Println("Redis Config:", redisConfig)
+
+	MysqlConfig := envConfig.MySQLConfig
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		os.Getenv("MYSQL_USER"),
-		os.Getenv("MYSQL_ROOT_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("MYSQL_DATABASE"),
+		MysqlConfig.MYSQL_USER,
+		MysqlConfig.MYSQL_ROOT_PASSWORD,
+		MysqlConfig.DB_HOST,
+		MysqlConfig.MYSQL_DATABASE,
 	)
+
 	fmt.Println("MySQL DSN:", dsn)
+
 	mySQLConfig := db.MySQLConfig{
 		DSN: dsn,
 	}

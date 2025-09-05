@@ -26,18 +26,23 @@ func (app *Application) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Notification struct {
 	// Change `type:uuid` to `type:varchar(36)`
-	ID            uuid.UUID `gorm:"type:varchar(36);primaryKey"`
-	ApplicationID uuid.UUID `gorm:"type:varchar(36);index"` // FK
-	QueueID       string    `gorm:"type:varchar(100);uniqueIndex"`
-	Type          string    `gorm:"type:text"`
-	Recipient     string    `gorm:"type:text"`
-	Subject       string    `gorm:"type:text"`
-	Message       string    `gorm:"type:text"`
-	Status        string    `gorm:"type:text"`
-	Attempts      int
-	CreatedAt     time.Time
-	PersistedAt   *time.Time
-	ProcessedAt   *time.Time
+	ID                 uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	ApplicationID      uuid.UUID `gorm:"type:varchar(36);index"` // FK
+	QueueID            string    `gorm:"type:varchar(100);uniqueIndex"`
+	Type               string    `gorm:"type:text"`
+	Channel            string    `gorm:"type:text"`
+	Provider           string    `gorm:"type:text"`
+	TemplateID         string    `json:"template_id,omitempty"`
+	MessageContentType string    `json:"message_content_type,omitempty"`
+	Recipient          string    `gorm:"type:text"`
+	Subject            string    `gorm:"type:text"`
+	Message            string    `gorm:"type:text"`
+	Status             string    `gorm:"type:text"`
+	Attempts           int
+	CreatedAt          time.Time
+	UpdatedAt          time.Time `json:"updated_at"`
+	PersistedAt        *time.Time
+	ProcessedAt        *time.Time
 }
 
 // BeforeCreate hook is correct and needs no changes

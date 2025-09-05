@@ -58,43 +58,40 @@ func GetEmailChannel() *EmailNotifier {
 	return EmailChannel
 }
 
-func ProcessEmailNotifications(notif *queue.QueuedNotification) {
+func ProcessEmailNotifications(notif *queue.QueuedNotification) (*notification.Notification, error) {
 	log.Printf("Processing email notification %s for %s: %+v", notif.ID, notif.Recipient, notif)
-
+	notification := &notification.Notification{
+		ID:                 notif.ID,
+		ApplicationID:      notif.ApplicationID,
+		QueueID:            notif.QueueID,
+		Recipient:          notif.Recipient,
+		Subject:            notif.Subject,
+		Message:            notif.Message,
+		Channel:            notif.Channel,
+		Provider:           notif.Provider,
+		Status:             notif.Status,
+		CreatedAt:          notif.CreatedAt,
+		MessageContentType: notif.MessageContentType,
+		TemplateID:         notif.TemplateID,
+	}
 	switch notif.Provider {
 	case "smtp", "email":
 		if EmailChannel == nil {
 			panic("Email notifier is not initialized")
 		}
-		err := EmailChannel.Send(context.Background(), &notification.Notification{
-			ID:                 notif.ID,
-			Recipient:          notif.Recipient,
-			Subject:            notif.Subject,
-			Message:            notif.Message,
-			Provider:           notif.Provider,
-			Status:             notif.Status,
-			CreatedAt:          notif.CreatedAt,
-			MessageContentType: notif.MessageContentType,
-			TemplateID:         notif.TemplateID,
-		})
+		err := EmailChannel.Send(context.Background(), notification)
 		if err != nil {
 			log.Printf("Error sending email: %v", err)
 		}
+		return notification, err
 	case "Resend": //
-		EmailProviders.Client.Send(context.Background(), &notification.Notification{
-			ID:                 notif.ID,
-			Recipient:          notif.Recipient,
-			Subject:            notif.Subject,
-			Message:            notif.Message,
-			Provider:           notif.Provider,
-			Status:             notif.Status,
-			CreatedAt:          notif.CreatedAt,
-			MessageContentType: notif.MessageContentType,
-			TemplateID:         notif.TemplateID,
-		})
+		_, err := EmailProviders.Client.Send(context.Background(), notification)
+		return notification, err
 
 	// more providers can be added here
 	default:
 		log.Printf("Unknown email provider: %s", notif.Provider)
+		return notification, fmt.Errorf("unknown email provider: %s", notif.Provider)
 	}
+
 }

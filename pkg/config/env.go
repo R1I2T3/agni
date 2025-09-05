@@ -139,6 +139,22 @@ func GetResendEnvConfig() ResendEnvConfig {
 	}
 }
 
+type MySQLConfig struct {
+	MYSQL_USER          string
+	MYSQL_ROOT_PASSWORD string
+	DB_HOST             string
+	MYSQL_DATABASE      string
+}
+
+func GetMySQLDBConfig() MySQLConfig {
+	return MySQLConfig{
+		MYSQL_USER:          GetEnv("MYSQL_USER", ""),
+		MYSQL_ROOT_PASSWORD: GetEnv("MYSQL_ROOT_PASSWORD", ""),
+		DB_HOST:             GetEnv("DB_HOST", ""),
+		MYSQL_DATABASE:      GetEnv("MYSQL_DATABASE", ""),
+	}
+}
+
 type EnvConfig struct {
 	ServerEnvConfig ServerEnvConfig
 	RedisEnvConfig  RedisEnvConfig
@@ -146,6 +162,7 @@ type EnvConfig struct {
 	AdminEnvConfig  AdminEnvConfig
 	EmailEnvConfig  EmailEnvConfig
 	ResendEnvConfig ResendEnvConfig
+	MySQLConfig     MySQLConfig
 }
 
 func GetEnvConfig() EnvConfig {
@@ -156,6 +173,7 @@ func GetEnvConfig() EnvConfig {
 		AdminEnvConfig:  GetAdminEnvConfig(),
 		EmailEnvConfig:  GetEmailEnvConfig(),
 		ResendEnvConfig: GetResendEnvConfig(),
+		MySQLConfig:     GetMySQLDBConfig(),
 	}
 }
 
