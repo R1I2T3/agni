@@ -1,29 +1,38 @@
 package sms
 
 import (
-	"context"
+	"log"
 
 	"github.com/r1i2t3/agni/pkg/notification"
-	"github.com/twilio/twilio-go"
+	smsproviders "github.com/r1i2t3/agni/pkg/notification/channels/sms/SMSProviders"
+	"github.com/r1i2t3/agni/pkg/queue"
 )
 
-type SMSNotifier struct {
-	client     *twilio.RestClient
-	fromNumber string
-}
-
-func NewSMSNotifier(accountSid, authToken, fromNumber string) *SMSNotifier {
-	client := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: accountSid,
-		Password: authToken,
-	})
-	return &SMSNotifier{
-		client:     client,
-		fromNumber: fromNumber,
+func ProcessSMSNotifications(notif *queue.QueuedNotification) (*notification.Notification, error) {
+	log.Printf("Processing SMS notification %s for %s: %+v", notif.ID, notif.Recipient, notif)
+	notification := &notification.Notification{
+		ID:                 notif.ID,
+		ApplicationID:      notif.ApplicationID,
+		QueueID:            notif.QueueID,
+		Recipient:          notif.Recipient,
+		Subject:            notif.Subject,
+		Message:            notif.Message,
+		Channel:            notif.Channel,
+		Provider:           notif.Provider,
+		Status:             notif.Status,
+		CreatedAt:          notif.CreatedAt,
+		MessageContentType: notif.MessageContentType,
+		TemplateID:         notif.TemplateID,
 	}
-}
-
-func (n *SMSNotifier) Send(ctx context.Context, notification *notification.Notification) error {
-	// Implement SMS sending logic using Twilio or any other SMS service
-	return nil
+	switch notif.Provider {
+	case "twilio":
+		// Process Twilio SMS notification
+		_, err := smsproviders.TwilioClient.TwilioSend(notif.Recipient, notif.Message)
+		if err != nil {
+			log.Printf("Failed to send SMS notification via Twilio: %v", err)
+		}
+	default:
+		log.Printf("Unknown SMS provider %s", notif.Provider)
+	}
+	return notification, nil
 }

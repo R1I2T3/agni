@@ -6,6 +6,9 @@ import (
 	//import resend provider
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email/EmailProviders"
+
+	// SMS provider
+	smsproviders "github.com/r1i2t3/agni/pkg/notification/channels/sms/SMSProviders"
 )
 
 func InitializeEmailChannel(EmailEnvConfig *EmailEnvConfig) {
@@ -40,4 +43,21 @@ func InitializeResendProvider(ResendEnvConfig *ResendEnvConfig) {
 	}
 
 	log.Println("✅ Resend channel initialized successfully")
+}
+
+func InitializeTwilioProvider(TwilioEnvConfig *TwilioEnvConfig) {
+	if TwilioEnvConfig == nil {
+		log.Fatal("Twilio configuration is required")
+	}
+	log.Printf("Initializing Twilio provider with config: %+v", TwilioEnvConfig)
+	_, err := smsproviders.NewTwilioSender(
+		TwilioEnvConfig.TWILIO_PHONE_NUMBER,
+		TwilioEnvConfig.ACCOUNT_SID,
+		TwilioEnvConfig.AUTH_TOKEN,
+	)
+	if err != nil {
+		log.Fatalf("Failed to initialize Twilio notifier: %v", err)
+	}
+
+	log.Println("✅ Twilio channel initialized successfully")
 }

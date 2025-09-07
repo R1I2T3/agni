@@ -9,6 +9,7 @@ import (
 	"github.com/r1i2t3/agni/pkg/db"
 	"github.com/r1i2t3/agni/pkg/notification"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
+	"github.com/r1i2t3/agni/pkg/notification/channels/sms"
 	"github.com/r1i2t3/agni/pkg/queue"
 )
 
@@ -114,7 +115,7 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 	case "sms":
 		// Process SMS notification
 		log.Printf("📱 Worker %d sending SMS to %s", w.WorkerID, notif.Recipient)
-		// TODO: Add SMS sending logic here
+		sentNotification, err = sms.ProcessSMSNotifications(notif)
 	case "push":
 		// Process push notification
 		log.Printf("📲 Worker %d sending push notification to %s", w.WorkerID, notif.Recipient)
