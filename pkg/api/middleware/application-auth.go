@@ -15,7 +15,6 @@ func ApplicationAuth(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
-
 	app, err := db.GetApplicationByTokenAndSecret(req.ApplicationToken, req.ApplicationSecret)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})

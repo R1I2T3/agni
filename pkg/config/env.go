@@ -154,8 +154,8 @@ type TwilioEnvConfig struct {
 func GetTwilioEnvConfig() TwilioEnvConfig {
 	return TwilioEnvConfig{
 		TWILIO_PHONE_NUMBER: GetEnv("TWILIO_PHONE_NUMBER", ""),
-		ACCOUNT_SID:         GetEnv("TWILIO_ACCOUNT_SID", ""),
-		AUTH_TOKEN:          GetEnv("TWILIO_AUTH_TOKEN", ""),
+		ACCOUNT_SID:         GetEnv("ACCOUNT_SID", ""),
+		AUTH_TOKEN:          GetEnv("AUTH_TOKEN", ""),
 	}
 }
 
