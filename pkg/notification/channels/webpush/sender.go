@@ -1,10 +1,10 @@
-package push
+package webpush
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/r1i2t3/agni/pkg/notification"
+	"github.com/r1i2t3/agni/pkg/queue"
 )
 
 type PushNotifier struct {
@@ -24,6 +24,6 @@ func NewPushNotifier(publicKey, privateKey, subject string) (*PushNotifier, erro
 	}, nil
 }
 
-func (p *PushNotifier) Send(ctx context.Context, n *notification.Notification) error {
-	return nil
+func ProcessWebPushNotifications(notif *queue.QueuedNotification) (*notification.Notification, error) {
+	return nil, nil
 }

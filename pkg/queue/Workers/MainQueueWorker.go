@@ -10,6 +10,7 @@ import (
 	"github.com/r1i2t3/agni/pkg/notification"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/notification/channels/sms"
+	"github.com/r1i2t3/agni/pkg/notification/channels/webpush"
 	"github.com/r1i2t3/agni/pkg/queue"
 )
 
@@ -116,10 +117,10 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 		// Process SMS notification
 		log.Printf("📱 Worker %d sending SMS to %s", w.WorkerID, notif.Recipient)
 		sentNotification, err = sms.ProcessSMSNotifications(notif)
-	case "push":
-		// Process push notification
-		log.Printf("📲 Worker %d sending push notification to %s", w.WorkerID, notif.Recipient)
-		// TODO: Add push notification logic here
+	case "webpush":
+		// Process web push notification
+		log.Printf("📲 Worker %d sending web push notification to %s", w.WorkerID, notif.Recipient)
+		sentNotification, err = webpush.ProcessWebPushNotifications(notif)
 	default:
 		log.Printf("⚠️ Worker %d unknown notification channel: %s", w.WorkerID, notif.Channel)
 		return fmt.Errorf("unknown notification channel: %s", notif.Channel)

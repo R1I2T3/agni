@@ -31,4 +31,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// notification routes
 	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.EnqueueNotification)
+
+	// webpush routes
+	app.Post("/api/webpush/subscribe", handlers.HandleWebPushSubscription)
 }

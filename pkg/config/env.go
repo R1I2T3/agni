@@ -10,26 +10,28 @@ import (
 )
 
 type EnvConfig struct {
-	ServerEnvConfig ServerEnvConfig
-	RedisEnvConfig  RedisEnvConfig
-	CorsEnvConfig   CorsEnvConfig
-	AdminEnvConfig  AdminEnvConfig
-	EmailEnvConfig  EmailEnvConfig
-	ResendEnvConfig ResendEnvConfig
-	MySQLConfig     MySQLConfig
-	TwilioEnvConfig TwilioEnvConfig
+	ServerEnvConfig  ServerEnvConfig
+	RedisEnvConfig   RedisEnvConfig
+	CorsEnvConfig    CorsEnvConfig
+	AdminEnvConfig   AdminEnvConfig
+	EmailEnvConfig   EmailEnvConfig
+	ResendEnvConfig  ResendEnvConfig
+	MySQLConfig      MySQLConfig
+	TwilioEnvConfig  TwilioEnvConfig
+	WebPushEnvConfig WebPushEnvConfig
 }
 
 func GetEnvConfig() EnvConfig {
 	return EnvConfig{
-		ServerEnvConfig: GetServerEnvConfig(),
-		MySQLConfig:     GetMySQLDBConfig(),
-		RedisEnvConfig:  GetRedisEnvConfig(),
-		CorsEnvConfig:   GetCorsEnvConfig(),
-		AdminEnvConfig:  GetAdminEnvConfig(),
-		EmailEnvConfig:  GetEmailEnvConfig(),
-		ResendEnvConfig: GetResendEnvConfig(),
-		TwilioEnvConfig: GetTwilioEnvConfig(),
+		ServerEnvConfig:  GetServerEnvConfig(),
+		MySQLConfig:      GetMySQLDBConfig(),
+		RedisEnvConfig:   GetRedisEnvConfig(),
+		CorsEnvConfig:    GetCorsEnvConfig(),
+		AdminEnvConfig:   GetAdminEnvConfig(),
+		EmailEnvConfig:   GetEmailEnvConfig(),
+		ResendEnvConfig:  GetResendEnvConfig(),
+		TwilioEnvConfig:  GetTwilioEnvConfig(),
+		WebPushEnvConfig: GetWebPushEnvConfig(),
 	}
 }
 
@@ -154,8 +156,22 @@ type TwilioEnvConfig struct {
 func GetTwilioEnvConfig() TwilioEnvConfig {
 	return TwilioEnvConfig{
 		TWILIO_PHONE_NUMBER: GetEnv("TWILIO_PHONE_NUMBER", ""),
-		ACCOUNT_SID:         GetEnv("ACCOUNT_SID", ""),
-		AUTH_TOKEN:          GetEnv("AUTH_TOKEN", ""),
+		ACCOUNT_SID:         GetEnv("TWILIO_ACCOUNT_SID", ""),
+		AUTH_TOKEN:          GetEnv("TWILIO_AUTH_TOKEN", ""),
+	}
+}
+
+type WebPushEnvConfig struct {
+	VAPID_PUBLIC_KEY  string
+	VAPID_PRIVATE_KEY string
+	VAPID_SUBJECT     string
+}
+
+func GetWebPushEnvConfig() WebPushEnvConfig {
+	return WebPushEnvConfig{
+		VAPID_PUBLIC_KEY:  GetEnv("VAPID_PUBLIC_KEY", ""),
+		VAPID_PRIVATE_KEY: GetEnv("VAPID_PRIVATE_KEY", ""),
+		VAPID_SUBJECT:     GetEnv("VAPID_SUBJECT", ""),
 	}
 }
 

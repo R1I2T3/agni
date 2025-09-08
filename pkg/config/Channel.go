@@ -1,13 +1,13 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	//import email channel package
 	//import resend provider
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email/EmailProviders"
+	"github.com/r1i2t3/agni/pkg/notification/channels/webpush"
 
 	// SMS provider
 	smsproviders "github.com/r1i2t3/agni/pkg/notification/channels/sms/SMSProviders"
@@ -48,7 +48,6 @@ func InitializeResendProvider(ResendEnvConfig *ResendEnvConfig) {
 }
 
 func InitializeTwilioProvider(TwilioEnvConfig *TwilioEnvConfig) {
-	fmt.Println(TwilioEnvConfig)
 	if TwilioEnvConfig == nil {
 		log.Fatal("Twilio configuration is required")
 	}
@@ -63,4 +62,21 @@ func InitializeTwilioProvider(TwilioEnvConfig *TwilioEnvConfig) {
 	}
 
 	log.Println("✅ Twilio channel initialized successfully")
+}
+
+func InitializeWebPushProvider(WebPushEnvConfig *WebPushEnvConfig) {
+	if WebPushEnvConfig == nil {
+		log.Fatal("WebPush configuration is required")
+	}
+	log.Printf("Initializing WebPush provider with config: %+v", WebPushEnvConfig)
+	_, err := webpush.NewPushNotifier(
+		WebPushEnvConfig.VAPID_PUBLIC_KEY,
+		WebPushEnvConfig.VAPID_PRIVATE_KEY,
+		WebPushEnvConfig.VAPID_SUBJECT,
+	)
+	if err != nil {
+		log.Printf("Failed to initialize WebPush notifier: %v", err)
+	}
+
+	log.Println("✅ WebPush channel initialized successfully")
 }

@@ -25,6 +25,7 @@ func InitializeMySQL(mySQLConfig db.MySQLConfig) {
 	allModel := []interface{}{
 		&db.Application{},
 		&db.Notification{},
+		&db.WebPushSubscription{},
 	}
 	if err := db.InitMySQL(mySQLConfig, allModel...); err != nil {
 		log.Fatalf("Failed to initialize MySQL: %v", err)

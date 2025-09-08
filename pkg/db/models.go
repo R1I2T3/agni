@@ -50,3 +50,19 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 	n.ID = uuid.New()
 	return
 }
+
+type WebPushSubscription struct {
+	ID        uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	UserID    string    `gorm:"index"`
+	Endpoint  string    `gorm:"uniqueIndex;not null"`
+	P256dh    string    `gorm:"not null"`
+	Auth      string    `gorm:"not null"`
+	Device    string    `gorm:"size:50"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (wps *WebPushSubscription) BeforeCreate(tx *gorm.DB) (err error) {
+	wps.ID = uuid.New()
+	return
+}
