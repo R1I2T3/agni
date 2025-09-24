@@ -121,6 +121,9 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 		// Process web push notification
 		log.Printf("📲 Worker %d sending web push notification to %s", w.WorkerID, notif.Recipient)
 		sentNotification, err = webpush.ProcessWebPushNotifications(notif)
+
+	case "InApp":
+		// Process in App notification
 	default:
 		log.Printf("⚠️ Worker %d unknown notification channel: %s", w.WorkerID, notif.Channel)
 		return fmt.Errorf("unknown notification channel: %s", notif.Channel)

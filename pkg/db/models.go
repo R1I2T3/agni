@@ -39,10 +39,14 @@ type Notification struct {
 	Message            string    `gorm:"type:text"`
 	Status             string    `gorm:"type:text"`
 	Attempts           int
-	CreatedAt          time.Time
-	UpdatedAt          time.Time `json:"updated_at"`
-	PersistedAt        *time.Time
-	ProcessedAt        *time.Time
+	// In-app read state (only used for InApp channel)
+	Read   bool       `gorm:"default:false;index" json:"read"`
+	ReadAt *time.Time `json:"read_at,omitempty"`
+
+	CreatedAt   time.Time
+	UpdatedAt   time.Time `json:"updated_at"`
+	PersistedAt *time.Time
+	ProcessedAt *time.Time
 }
 
 // BeforeCreate hook is correct and needs no changes
@@ -54,7 +58,7 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 type WebPushSubscription struct {
 	ID        uuid.UUID `gorm:"type:varchar(36);primaryKey"`
 	UserID    string    `gorm:"index"`
-	Endpoint  string    `gorm:"uniqueIndex;not null"`
+	Endpoint  string    `gorm:"type:varchar(191);uniqueIndex;not null"` // changed from TEXT to VARCHAR(191) so mysql can create an index on this column
 	P256dh    string    `gorm:"not null"`
 	Auth      string    `gorm:"not null"`
 	Device    string    `gorm:"size:50"`
