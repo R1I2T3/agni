@@ -57,10 +57,10 @@ func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
 
 type WebPushSubscription struct {
 	ID        uuid.UUID `gorm:"type:varchar(36);primaryKey"`
-	UserID    string    `gorm:"index"`
-	Endpoint  string    `gorm:"type:varchar(191);uniqueIndex;not null"` // changed from TEXT to VARCHAR(191) so mysql can create an index on this column
-	P256dh    string    `gorm:"not null"`
-	Auth      string    `gorm:"not null"`
+	UserID    string    `gorm:"index;size:36"`
+	Endpoint  string    `gorm:"size:500;uniqueIndex;not null"`
+	P256dh    string    `gorm:"size:255;not null"`
+	Auth      string    `gorm:"size:255;not null"`
 	Device    string    `gorm:"size:50"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

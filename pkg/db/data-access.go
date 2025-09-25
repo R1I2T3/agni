@@ -70,3 +70,13 @@ func GetApplicationByTokenAndSecret(token string, secret string) (*Application, 
 
 	return &app, nil
 }
+
+func GetSubscriptionByUserId(userID string) ([]WebPushSubscription, error) {
+	var subscription []WebPushSubscription
+	something := GetMySQLDB()
+	if err := something.Where("user_id = ?", userID).First(&subscription).Error; err != nil {
+		return nil, err
+	}
+
+	return subscription, nil
+}

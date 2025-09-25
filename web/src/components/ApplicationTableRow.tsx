@@ -11,12 +11,18 @@ type AppTableRowProps = {
   onTokenClick?: () => void
 }
 export function AppTableRow({ app, onEdit, onDelete }: AppTableRowProps) {
+  console.log(app)
   return (
     <TableRow key={app.name} className="border-red-800/30 hover:bg-red-900/20">
       <TableCell className="font-medium text-orange-100">{app.name}</TableCell>
       <TableCell>
         <code className="bg-red-900/50 border border-red-700/50 px-3 py-1 rounded text-sm text-orange-200">
           {app.api_token}
+        </code>
+      </TableCell>
+       <TableCell>
+        <code className="bg-red-900/50 border border-red-700/50 px-3 py-1 rounded text-sm text-orange-200">
+          {app.api_secret}
         </code>
       </TableCell>
       <TableCell className="text-orange-100">

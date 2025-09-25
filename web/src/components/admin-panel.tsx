@@ -98,7 +98,10 @@ export default function AdminPanel({
                     <TableHead className="text-orange-200">
                       Application Token
                     </TableHead>
-                    <TableHead className="text-orange-200">Created</TableHead>
+                     <TableHead className="text-orange-200">
+                      Application Secret
+                    </TableHead>
+                    <TableHead className="text-orange-200">Created at</TableHead>
                     <TableHead className="text-right text-orange-200">
                       Actions
                     </TableHead>
