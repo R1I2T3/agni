@@ -10,30 +10,32 @@ import (
 )
 
 type EnvConfig struct {
-	ServerEnvConfig  ServerEnvConfig
-	RedisEnvConfig   RedisEnvConfig
-	CorsEnvConfig    CorsEnvConfig
-	AdminEnvConfig   AdminEnvConfig
-	EmailEnvConfig   EmailEnvConfig
-	ResendEnvConfig  ResendEnvConfig
-	MySQLConfig      MySQLConfig
-	TwilioEnvConfig  TwilioEnvConfig
-	WebPushEnvConfig WebPushEnvConfig
-	InAppConfig      InAppConfig
+	ServerEnvConfig    ServerEnvConfig
+	RedisEnvConfig     RedisEnvConfig
+	CorsEnvConfig      CorsEnvConfig
+	AdminEnvConfig     AdminEnvConfig
+	EmailEnvConfig     EmailEnvConfig
+	ResendEnvConfig    ResendEnvConfig
+	MySQLConfig        MySQLConfig
+	TwilioEnvConfig    TwilioEnvConfig
+	WebPushEnvConfig   WebPushEnvConfig
+	InAppConfig        InAppConfig
+	InAppServiceConfig InAppServiceConfig
 }
 
 func GetEnvConfig() EnvConfig {
 	return EnvConfig{
-		ServerEnvConfig:  GetServerEnvConfig(),
-		MySQLConfig:      GetMySQLDBConfig(),
-		RedisEnvConfig:   GetRedisEnvConfig(),
-		CorsEnvConfig:    GetCorsEnvConfig(),
-		AdminEnvConfig:   GetAdminEnvConfig(),
-		EmailEnvConfig:   GetEmailEnvConfig(),
-		ResendEnvConfig:  GetResendEnvConfig(),
-		TwilioEnvConfig:  GetTwilioEnvConfig(),
-		WebPushEnvConfig: GetWebPushEnvConfig(),
-		InAppConfig:      GetInAppConfig(),
+		ServerEnvConfig:    GetServerEnvConfig(),
+		MySQLConfig:        GetMySQLDBConfig(),
+		RedisEnvConfig:     GetRedisEnvConfig(),
+		CorsEnvConfig:      GetCorsEnvConfig(),
+		AdminEnvConfig:     GetAdminEnvConfig(),
+		EmailEnvConfig:     GetEmailEnvConfig(),
+		ResendEnvConfig:    GetResendEnvConfig(),
+		TwilioEnvConfig:    GetTwilioEnvConfig(),
+		WebPushEnvConfig:   GetWebPushEnvConfig(),
+		InAppConfig:        GetInAppConfig(),
+		InAppServiceConfig: GetInAppServiceConfig(),
 	}
 }
 
@@ -44,6 +46,21 @@ type ServerEnvConfig struct {
 func GetServerEnvConfig() ServerEnvConfig {
 	return ServerEnvConfig{
 		Port: GetEnv("SERVER_PORT", "8080"),
+	}
+}
+
+type InAppServiceConfig struct {
+	StreamName   string
+	GroupName    string
+	ConsumerName string
+	Port         string
+}
+
+func GetInAppServiceConfig() InAppServiceConfig {
+	return InAppServiceConfig{GroupName: GetEnv("GroupName", "inapp-group"),
+		ConsumerName: GetEnv("CunsumerName", "inapp-consumer-1"),
+		StreamName:   GetEnv("StreamName", "inapp:stream"),
+		Port:         GetEnv("Port", "4000"),
 	}
 }
 

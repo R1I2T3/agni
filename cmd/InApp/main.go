@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,10 +34,10 @@ func main() {
 	// Create consumer group if not exists
 	rdb := db.GetRedisClient()
 
-	_ = rdb.XGroupCreateMkStream(ctx, inapp.StreamName, inapp.GroupName, "$").Err()
+	_ = rdb.XGroupCreateMkStream(ctx, envConfig.InAppServiceConfig.StreamName, envConfig.InAppServiceConfig.GroupName, "$").Err()
 
 	// start consumer loop
-	go inapp.StartConsumer(ctx, rdb, inapp.GroupName, "inapp-consumer-1")
+	go inapp.StartConsumer(ctx, rdb, envConfig.InAppServiceConfig.GroupName, envConfig.InAppServiceConfig.ConsumerName)
 
 	// Fiber HTTP + WebSocket server
 	app := fiber.New(fiber.Config{
@@ -50,19 +49,16 @@ func main() {
 		return c.Status(fiber.StatusOK).SendString("ok")
 	})
 
-	// Replace adaptor route with fiber websocket route
-	// app.Get("/ws", adaptor.HTTPHandler(http.HandlerFunc(inapp.WSHandler)))
 	app.Get("/ws", websocket.New(func(conn *websocket.Conn) {
-		// extract user query param
-		user := string(conn.Params("user")) // fallback; prefer Query if available
 
-		// register connection with your hub: pass the fiber websocket.Conn directly
+		user := string(conn.Query("user"))
+
 		client := inapp.DefaultHub.Register(user, conn)
 		_ = client
 		client.ReadPump()
 	}))
 
-	addr := ":" + os.Getenv("INAPP_PORT")
+	addr := ":" + envConfig.InAppServiceConfig.Port
 	if addr == ":" {
 		addr = ":4000"
 	}

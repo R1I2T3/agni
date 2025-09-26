@@ -3,6 +3,7 @@ package inapp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -47,6 +48,7 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 				_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
 
 				// deliver to connected clients
+				fmt.Println("dilvering to %s", recipient)
 				DefaultHub.BroadcastToUser(recipient, payload)
 
 			}
