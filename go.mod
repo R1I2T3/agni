@@ -14,7 +14,10 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/SherClockHolmes/webpush-go v1.4.0 // indirect
+	github.com/fasthttp/websocket v1.5.3 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
+	github.com/gofiber/websocket/v2 v2.2.1 // indirect
+	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 )
 

@@ -1,0 +1,31 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# build the inapp binary
+cmd = "go build -o ./tmp/inapp ./cmd/inapp"
+bin = "./tmp/inapp"
+full_bin = "./tmp/inapp"
+include_ext = ["go", "tpl", "tmpl", "html"]
+exclude_dir = [
+    "tmp",
+    "vendor",
+    "node_modules",
+    "web/node_modules",
+    ".git",
+    "data",
+]
+exclude_file = []
+exclude_regex = ["_test.go"]
+exclude_unchanged = false
+delay = 500
+stop_on_error = true
+log = "tmp/air_inapp_errors.log"
+
+# Windows friendly options if you develop on Windows hosts
+poll = true
+poll_interval = 500
+
+[log]
+time = true
+main_only = false

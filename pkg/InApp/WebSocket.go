@@ -1,11 +1,13 @@
 package inapp
 
 import (
-	"net/http"
+	"encoding/json"
+	"fmt"
+	"log"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/gofiber/websocket/v2"
 )
 
 type Client struct {
@@ -24,16 +26,8 @@ var DefaultHub = &Hub{
 	clients: make(map[string]map[*Client]bool),
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		// implement origin check in prod
-		return true
-	},
-}
-
 func (h *Hub) Register(UserID string, conn *websocket.Conn) *Client {
+
 	c := &Client{conn: conn, Write: make(chan []byte, 32), Read: make(chan []byte, 32), userID: UserID}
 	h.mu.Lock()
 	if _, ok := h.clients[UserID]; !ok {
@@ -42,7 +36,7 @@ func (h *Hub) Register(UserID string, conn *websocket.Conn) *Client {
 	h.clients[UserID][c] = true
 	h.mu.Unlock()
 	go c.writePump()
-	go c.readPump()
+	fmt.Printf("started ws with someone\n")
 	return c
 }
 
@@ -51,6 +45,7 @@ func (c *Client) writePump() {
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()
+		fmt.Printf("close 1\n")
 	}()
 	for {
 		select {
@@ -70,7 +65,7 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
 	const (
 		pongWait       = 60 * time.Second
 		maxMessageSize = 512
@@ -88,9 +83,10 @@ func (c *Client) readPump() {
 		if err != nil {
 			DefaultHub.Unregister(c)
 			c.conn.Close()
+			fmt.Printf("close 2 \n")
 			return
 		}
-
+		fmt.Println(string(message))
 		// Example handling: echo message back to this client.
 		// Adjust behavior as needed (broadcast, process, etc.).
 		select {
@@ -99,6 +95,7 @@ func (c *Client) readPump() {
 			// send buffer full, unregister client
 			DefaultHub.Unregister(c)
 			c.conn.Close()
+			fmt.Printf("close 3\n")
 			return
 		}
 	}
@@ -114,4 +111,26 @@ func (h *Hub) Unregister(c *Client) {
 	h.mu.Unlock()
 	close(c.Write)
 	c.conn.Close()
+	fmt.Printf("close 4\n")
+}
+
+func (h *Hub) BroadcastToUser(userID string, payload interface{}) {
+	h.mu.RLock()
+	clients := h.clients[userID]
+	h.mu.RUnlock()
+	if clients == nil {
+		return
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("inapp: marshal payload: %v", err)
+		return
+	}
+	for c := range clients {
+		select {
+		case c.Write <- b:
+		default:
+			h.Unregister(c)
+		}
+	}
 }

@@ -1,0 +1,20 @@
+FROM golang:1.23-alpine
+
+# tools needed for building and air
+RUN apk add --no-cache git curl gcc musl-dev
+
+# install air
+RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s
+ENV PATH="/root/.air:$PATH"
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+# copy full repo (will be overridden by volume in dev)
+COPY . .
+
+EXPOSE 4000
+ENV INAPP_PORT=4000
+# run air using project-specific config
+CMD ["air", "-c", "cmd/inapp/.air.toml"]
