@@ -9,6 +9,7 @@ import (
 	"github.com/r1i2t3/agni/pkg/db"
 	"github.com/r1i2t3/agni/pkg/notification"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
+	inapp "github.com/r1i2t3/agni/pkg/notification/channels/in-app"
 	"github.com/r1i2t3/agni/pkg/notification/channels/sms"
 	"github.com/r1i2t3/agni/pkg/notification/channels/webpush"
 	"github.com/r1i2t3/agni/pkg/queue"
@@ -124,6 +125,8 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 
 	case "InApp":
 		// Process in App notification
+		log.Printf("📲 Worker %d sending InApp notification to %s", w.WorkerID, notif.Recipient)
+		sentNotification, err = inapp.ProcessInAppNotifications(notif)
 	default:
 		log.Printf("⚠️ Worker %d unknown notification channel: %s", w.WorkerID, notif.Channel)
 		return fmt.Errorf("unknown notification channel: %s", notif.Channel)

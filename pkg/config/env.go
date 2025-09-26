@@ -19,6 +19,7 @@ type EnvConfig struct {
 	MySQLConfig      MySQLConfig
 	TwilioEnvConfig  TwilioEnvConfig
 	WebPushEnvConfig WebPushEnvConfig
+	InAppConfig      InAppConfig
 }
 
 func GetEnvConfig() EnvConfig {
@@ -32,6 +33,7 @@ func GetEnvConfig() EnvConfig {
 		ResendEnvConfig:  GetResendEnvConfig(),
 		TwilioEnvConfig:  GetTwilioEnvConfig(),
 		WebPushEnvConfig: GetWebPushEnvConfig(),
+		InAppConfig:      GetInAppConfig(),
 	}
 }
 
@@ -173,6 +175,15 @@ func GetWebPushEnvConfig() WebPushEnvConfig {
 		VAPID_PRIVATE_KEY: GetEnv("VAPID_PRIVATE_KEY", ""),
 		VAPID_SUBJECT:     GetEnv("VAPID_SUBJECT", ""),
 	}
+}
+
+type InAppConfig struct {
+	stream string
+}
+
+func GetInAppConfig() InAppConfig {
+	return InAppConfig{
+		stream: GetEnv("Redis_InApp_streamName", "stream:inapp")}
 }
 
 func GetLogLevel(level string) logger.LogLevel {

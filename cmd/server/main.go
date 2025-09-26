@@ -52,6 +52,7 @@ func main() {
 	config.InitializeResendProvider(&envConfig.ResendEnvConfig)
 	config.InitializeTwilioProvider(&envConfig.TwilioEnvConfig)
 	config.InitializeWebPushProvider(&envConfig.WebPushEnvConfig)
+	config.InitializeInAppProvider(&envConfig.InAppConfig)
 	// Create Fiber app
 	app := fiber.New()
 

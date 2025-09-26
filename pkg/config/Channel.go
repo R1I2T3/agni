@@ -7,6 +7,7 @@ import (
 	//import resend provider
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email/EmailProviders"
+	inapp "github.com/r1i2t3/agni/pkg/notification/channels/in-app"
 	"github.com/r1i2t3/agni/pkg/notification/channels/webpush"
 
 	// SMS provider
@@ -79,4 +80,12 @@ func InitializeWebPushProvider(WebPushEnvConfig *WebPushEnvConfig) {
 	}
 
 	log.Println("✅ WebPush channel initialized successfully")
+}
+
+func InitializeInAppProvider(InAppConfig *InAppConfig) {
+	if InAppConfig == nil {
+		log.Fatal("InApp configuration is required")
+	}
+	inapp.NewInAppNotifier(InAppConfig.stream)
+	log.Println("✅ InApp channel initialized successfully")
 }
