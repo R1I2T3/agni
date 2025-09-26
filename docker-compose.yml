@@ -68,12 +68,12 @@ services:
     restart: unless-stopped
     networks:
       - agni-network
-  
+
   # InApp microservice
   agni-inapp:
     build:
       context: .
-      dockerfile: cmd/inapp/Dockerfile.dev
+      dockerfile: cmd/inapp/dockerfile.dev
     container_name: agni-inapp
     ports:
       - "4000:4000"

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/r1i2t3/agni/pkg/db"
 )
@@ -17,9 +19,12 @@ type Subscription struct {
 
 func HandleWebPushSubscription(c *fiber.Ctx) error {
 	var sub Subscription
+	fmt.Println("Handling web push subscription")
 	if err := c.BodyParser(&sub); err != nil {
+		fmt.Println("Error parsing body:", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
+	fmt.Println("Received subscription:", sub)
 	var subScriptionModel = &db.WebPushSubscription{
 		Endpoint: sub.Endpoint,
 		Auth:     sub.Keys.Auth,
