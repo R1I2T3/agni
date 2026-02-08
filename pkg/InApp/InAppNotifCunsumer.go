@@ -14,6 +14,7 @@ const StreamName = "stream:inapp"
 const GroupName = "inapp-group"
 const DLQ = "stream:inapp:dlq"
 const ProcessedSet = "inapp:processed_ids"
+const BroadcastChannelPrefix = "inapp:broadcast:" // New constant
 
 func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer string) {
 	for {
@@ -39,18 +40,35 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 				if err := json.Unmarshal([]byte(raw), &payload); err != nil {
 					log.Printf("inapp: invalid payload: %v", err)
 					_ = rdb.XAck(ctx, StreamName, group, msg.ID)
+					_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
 					continue
 				}
-				//		id, _ := payload["id"].(string)
+
+				id, _ := payload["id"].(string)
 				recipient, _ := payload["recipient"].(string)
 
-				// delete the entry from the stream to free space immediately
+				// Idempotency check
+				already, _ := rdb.SIsMember(ctx, ProcessedSet, id).Result()
+				if already {
+					_ = rdb.XAck(ctx, StreamName, group, msg.ID)
+					_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
+					continue
+				}
+
+				// CHANGED: Publish to Redis Pub/Sub instead of calling hub directly
+				// This broadcasts to ALL containers so the one with the WS connection can deliver
+				broadcastChannel := fmt.Sprintf("%s%s", BroadcastChannelPrefix, recipient)
+				if err := rdb.Publish(ctx, broadcastChannel, raw).Err(); err != nil {
+					log.Printf("failed to publish broadcast for %s: %v", recipient, err)
+					continue
+				}
+
+				log.Printf("✓ Published notification %s for %s to pub/sub", id, recipient)
+
+				// Mark processed and ack
+				_, _ = rdb.SAdd(ctx, ProcessedSet, id).Result()
+				_ = rdb.XAck(ctx, StreamName, group, msg.ID)
 				_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
-
-				// deliver to connected clients
-				fmt.Println("dilvering to %s", recipient)
-				DefaultHub.BroadcastToUser(recipient, payload)
-
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine
+FROM golang:1.24-alpine
 
 # tools needed for building and air
 RUN apk add --no-cache git curl gcc musl-dev

@@ -68,7 +68,7 @@ services:
     restart: unless-stopped
     networks:
       - agni-network
-  
+
   # InApp microservice
   agni-inapp:
     build:
@@ -83,8 +83,47 @@ services:
       - REDIS_ADDR=agni-redis:6379
       - INAPP_PORT=4000
     volumes:
-      - .:/app:delegated       # mount repo so edits are visible to air
-      - /app/tmp               # persisted build binary location inside container
+      - .:/app:delegated # mount repo so edits are visible to air
+      - /app/tmp # persisted build binary location inside container
+    depends_on:
+      - agni-redis
+    networks:
+      - agni-network
+
+  agni-inapp2:
+    build:
+      context: .
+      dockerfile: cmd/inapp/Dockerfile.dev
+    container_name: agni-inapp2
+    ports:
+      - "4001:4000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_ADDR=agni-redis:6379
+      - INAPP_PORT=4000
+    volumes:
+      - .:/app:delegated # mount repo so edits are visible to air
+      - /app/tmp # persisted build binary location inside container
+    depends_on:
+      - agni-redis
+    networks:
+      - agni-network
+  agni-inapp3:
+    build:
+      context: .
+      dockerfile: cmd/inapp/Dockerfile.dev
+    container_name: agni-inapp3
+    ports:
+      - "4002:4000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_ADDR=agni-redis:6379
+      - INAPP_PORT=4000
+    volumes:
+      - .:/app:delegated # mount repo so edits are visible to air
+      - /app/tmp # persisted build binary location inside container
     depends_on:
       - agni-redis
     networks:
