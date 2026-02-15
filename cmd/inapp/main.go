@@ -8,16 +8,20 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/websocket/v2"
 	"github.com/r1i2t3/agni/pkg/config"
 	"github.com/r1i2t3/agni/pkg/db"
 	inapp "github.com/r1i2t3/agni/pkg/inapp"
+	"github.com/r1i2t3/agni/pkg/inapp/middleware"
 	"github.com/redis/go-redis/v9"
 )
 
 func main() {
 	// Load environment configurations
 	envConfig := config.GetEnvConfig()
+
+	// Initialize Redis
 	redisConfig := db.RedisConfig{
 		Host:         envConfig.RedisEnvConfig.Host,
 		Port:         envConfig.RedisEnvConfig.Port,
@@ -27,8 +31,6 @@ func main() {
 		ReadTimeout:  envConfig.RedisEnvConfig.ReadTimeout,
 		WriteTimeout: envConfig.RedisEnvConfig.WriteTimeout,
 	}
-
-	// Initialize databases
 	config.InitializeRedis(redisConfig)
 
 	ctx := context.Background()
@@ -49,26 +51,28 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 	})
 
+	// Middleware
+	app.Use(cors.New())
+
+	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).SendString("ok")
 	})
 
-	app.Get("/ws", websocket.New(func(conn *websocket.Conn) {
-		user := conn.Query("user")
-		if user == "" {
-			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "user required"))
-			return
-		}
+	// WebSocket endpoint - protected with JWT
+	app.Get("/ws", middleware.WebSocketJWTAuth, websocket.New(func(conn *websocket.Conn) {
+		userID := conn.Locals("user_id").(string)
 
-		client := inapp.DefaultHub.Register(user, conn)
-		client.ReadPump() // Block handler to keep connection open
+		client := inapp.DefaultHub.Register(userID, conn)
+		client.ReadPump()
 	}))
 
 	addr := ":" + envConfig.InAppServiceConfig.Port
 	if addr == ":" {
 		addr = ":4000"
 	}
-	log.Printf("inapp: listening on %s", addr)
+	log.Printf("🚀 InApp WebSocket service listening on %s", addr)
+	log.Printf("   - GET /ws?token=<jwt> (WebSocket with JWT authentication)")
 	log.Fatal(app.Listen(addr))
 }
 
@@ -78,17 +82,13 @@ func startBroadcastSubscriber(ctx context.Context, rdb *redis.Client) {
 	pubsub := rdb.PSubscribe(ctx, inapp.BroadcastChannelPrefix+"*")
 	defer pubsub.Close()
 
-	log.Println("📡 Broadcast subscriber started, listening for notifications...")
+	log.Println("📡 Broadcast subscriber started")
 
 	ch := pubsub.Channel()
 	for msg := range ch {
-		// msg.Channel = "inapp:broadcast:user123"
-		// msg.Payload = JSON notification
-
-		// Extract recipient from channel name
 		parts := strings.Split(msg.Channel, ":")
 		if len(parts) < 3 {
-			log.Printf("invalid broadcast channel format: %s", msg.Channel)
+			log.Printf("invalid broadcast channel: %s", msg.Channel)
 			continue
 		}
 		recipient := parts[2]
@@ -103,6 +103,4 @@ func startBroadcastSubscriber(ctx context.Context, rdb *redis.Client) {
 		// BroadcastToUser will check the local hub and only send if connected here
 		inapp.DefaultHub.BroadcastToUser(recipient, payload)
 	}
-
-	log.Println("⚠️  Broadcast subscriber stopped")
 }

@@ -18,20 +18,24 @@ func SetupRoutes(app *fiber.App) {
 	// Health check endpoints
 	app.Get("/health", handlers.HealthCheck)
 
-	// admin auth routes
+	// ============ Application Client Authentication ============
+	// HMAC-based login - returns JWT for client applications
+	app.Post("/api/auth/login", handlers.HMACLogin)
+
+	// ============ Admin Routes ============
 	app.Post("/api/admin/auth/login", handlers.AdminLogin)
 	app.Post("/api/admin/logout", handlers.AdminLogout)
 	app.Get("/api/admin/dashboard", middleware.RequireAdmin, handlers.AdminDashBoardRedirect)
 
-	// admin functions routes
+	// Admin functions
 	app.Post("/api/admin/create-application", middleware.RequireAdmin, handlers.CreateApplicationAndApiTokenAndSecret)
 	app.Get("/api/admin/applications", middleware.RequireAdmin, handlers.GetAllApplication)
 	app.Put("/api/admin/regenerate-token", middleware.RequireAdmin, handlers.RegenerateToken)
 	app.Put("/api/admin/delete-application", middleware.RequireAdmin, handlers.DeleteApplication)
 
-	// notification routes
+	// ============ Notification Routes ============
 	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.EnqueueNotification)
 
-	// webpush routes
+	// ============ WebPush Routes ============
 	app.Post("/api/webpush/subscribe", handlers.HandleWebPushSubscription)
 }
