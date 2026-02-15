@@ -46,6 +46,7 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 
 				id, _ := payload["id"].(string)
 				recipient, _ := payload["recipient"].(string)
+				applicationID, _ := payload["application_id"].(string)
 
 				// Idempotency check
 				already, _ := rdb.SIsMember(ctx, ProcessedSet, id).Result()
@@ -55,15 +56,14 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 					continue
 				}
 
-				// CHANGED: Publish to Redis Pub/Sub instead of calling hub directly
-				// This broadcasts to ALL containers so the one with the WS connection can deliver
-				broadcastChannel := fmt.Sprintf("%s%s", BroadcastChannelPrefix, recipient)
+				// Format: inapp:broadcast:app_id:user_id
+				broadcastChannel := fmt.Sprintf("%s%s:%s", BroadcastChannelPrefix, applicationID, recipient)
 				if err := rdb.Publish(ctx, broadcastChannel, raw).Err(); err != nil {
 					log.Printf("failed to publish broadcast for %s: %v", recipient, err)
 					continue
 				}
 
-				log.Printf("✓ Published notification %s for %s to pub/sub", id, recipient)
+				log.Printf("✓ Published notification %s for app %s user %s", id, applicationID, recipient)
 
 				// Mark processed and ack
 				_, _ = rdb.SAdd(ctx, ProcessedSet, id).Result()
