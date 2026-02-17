@@ -128,7 +128,21 @@ services:
       - agni-redis
     networks:
       - agni-network
-
+  # LOAD BALANCER
+  agni-nginx:
+    image: nginx:latest
+    container_name: agni-nginx
+    ports:
+      - "80:80" # Exposed to your host machine at localhost:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - agni-inapp
+      - agni-inapp2
+      - agni-inapp3
+    restart: unless-stopped
+    networks:
+      - agni-network
 volumes:
   redis_data:
   mysql_data:
