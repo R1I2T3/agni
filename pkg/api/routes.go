@@ -36,6 +36,13 @@ func SetupRoutes(app *fiber.App) {
 	// ============ Notification Routes ============
 	app.Post("/api/notification/send", middleware.ApplicationAuth, handlers.EnqueueNotification)
 
+	// ============ In-App Notification Routes (JWT Protected) ============
+	inapp := app.Group("/api/inapp", middleware.ClientApplicationAuth)
+	inapp.Get("/notifications", handlers.GetInAppNotifications)
+	inapp.Get("/notifications/unread-count", handlers.GetUnreadCount)
+	inapp.Put("/notifications/:id/read", handlers.MarkNotificationAsRead)
+	inapp.Put("/notifications/read-all", handlers.MarkAllNotificationsAsRead)
+
 	// ============ WebPush Routes ============
 	app.Post("/api/webpush/subscribe", handlers.HandleWebPushSubscription)
 }
