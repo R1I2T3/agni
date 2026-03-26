@@ -93,7 +93,7 @@ services:
   agni-inapp2:
     build:
       context: .
-      dockerfile: cmd/inapp/Dockerfile.dev
+      dockerfile: cmd/inapp/dockerfile.dev
     container_name: agni-inapp2
     ports:
       - "4001:4000"
@@ -112,7 +112,7 @@ services:
   agni-inapp3:
     build:
       context: .
-      dockerfile: cmd/inapp/Dockerfile.dev
+      dockerfile: cmd/inapp/dockerfile.dev
     container_name: agni-inapp3
     ports:
       - "4002:4000"

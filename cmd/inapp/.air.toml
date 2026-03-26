@@ -12,6 +12,7 @@ exclude_dir = [
     "vendor",
     "node_modules",
     "web/node_modules",
+     "edtech-demo",
     ".git",
     "data",
 ]

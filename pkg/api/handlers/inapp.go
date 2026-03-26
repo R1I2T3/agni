@@ -7,7 +7,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/r1i2t3/agni/pkg/db"
+	"gorm.io/gorm"
 )
+
+func supportsReadStateColumns(mySQLDB *gorm.DB) bool {
+	return mySQLDB.Migrator().HasColumn(&db.Notification{}, "read")
+}
 
 // GetInAppNotifications retrieves notifications for a user
 // GET /api/inapp/notifications?user_id=<user_id>&unread_only=true&limit=50&offset=0
@@ -33,7 +38,11 @@ func GetInAppNotifications(c *fiber.Ctx) error {
 		applicationID, userID, "InApp")
 
 	if unreadOnly {
-		query = query.Where("read = ?", false)
+		if supportsReadStateColumns(mySQLDB) {
+			query = query.Where(map[string]interface{}{"read": false})
+		} else {
+			query = query.Where("status <> ?", "read")
+		}
 	}
 
 	// Get total count
@@ -85,12 +94,17 @@ func MarkNotificationAsRead(c *fiber.Ctx) error {
 	// Update notification
 	mySQLDB := db.GetMySQLDB()
 	now := time.Now()
+	updates := map[string]interface{}{}
+	if supportsReadStateColumns(mySQLDB) {
+		updates["read"] = true
+		updates["read_at"] = now
+	} else {
+		updates["status"] = "read"
+	}
+
 	result := mySQLDB.Model(&db.Notification{}).
 		Where("id = ? AND application_id = ? AND channel = ?", id, applicationID, "InApp").
-		Updates(map[string]interface{}{
-			"read":    true,
-			"read_at": now,
-		})
+		Updates(updates)
 
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -134,13 +148,21 @@ func MarkAllNotificationsAsRead(c *fiber.Ctx) error {
 	// Update all unread notifications for this user
 	mySQLDB := db.GetMySQLDB()
 	now := time.Now()
-	result := mySQLDB.Model(&db.Notification{}).
-		Where("application_id = ? AND recipient = ? AND channel = ? AND read = ?",
-			applicationID, req.UserID, "InApp", false).
-		Updates(map[string]interface{}{
-			"read":    true,
-			"read_at": now,
-		})
+	query := mySQLDB.Model(&db.Notification{}).
+		Where("application_id = ? AND recipient = ? AND channel = ?",
+			applicationID, req.UserID, "InApp")
+
+	updates := map[string]interface{}{}
+	if supportsReadStateColumns(mySQLDB) {
+		query = query.Where(map[string]interface{}{"read": false})
+		updates["read"] = true
+		updates["read_at"] = now
+	} else {
+		query = query.Where("status <> ?", "read")
+		updates["status"] = "read"
+	}
+
+	result := query.Updates(updates)
 
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -159,7 +181,7 @@ func MarkAllNotificationsAsRead(c *fiber.Ctx) error {
 // GET /api/inapp/notifications/unread-count?user_id=<user_id>
 func GetUnreadCount(c *fiber.Ctx) error {
 	applicationID := c.Locals("application_id").(string)
-	userID := c.Query("user_id")
+	userID := c.Locals("user_id").(string)
 
 	if userID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -170,12 +192,19 @@ func GetUnreadCount(c *fiber.Ctx) error {
 	// Count unread notifications
 	mySQLDB := db.GetMySQLDB()
 	var count int64
-	err := mySQLDB.Model(&db.Notification{}).
-		Where("application_id = ? AND recipient = ? AND channel = ? AND read = ?",
-			applicationID, userID, "InApp", false).
-		Count(&count).Error
+	query := mySQLDB.Model(&db.Notification{}).
+		Where("application_id = ? AND recipient = ? AND channel = ?",
+			applicationID, userID, "InApp")
 
+	if supportsReadStateColumns(mySQLDB) {
+		query = query.Where(map[string]interface{}{"read": false})
+	} else {
+		query = query.Where("status <> ?", "read")
+	}
+
+	err := query.Count(&count).Error
 	if err != nil {
+		println(err.Error())
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to get unread count",
 		})
