@@ -10,6 +10,7 @@ import (
 )
 
 type EnvConfig struct {
+	ENV_MODE           string
 	ServerEnvConfig    ServerEnvConfig
 	RedisEnvConfig     RedisEnvConfig
 	CorsEnvConfig      CorsEnvConfig
@@ -24,7 +25,9 @@ type EnvConfig struct {
 }
 
 func GetEnvConfig() EnvConfig {
+	mode := GetEnv("ENV_MODE", "prod")
 	return EnvConfig{
+		ENV_MODE:           mode,
 		ServerEnvConfig:    GetServerEnvConfig(),
 		MySQLConfig:        GetMySQLDBConfig(),
 		RedisEnvConfig:     GetRedisEnvConfig(),
@@ -72,10 +75,15 @@ type MySQLConfig struct {
 }
 
 func GetMySQLDBConfig() MySQLConfig {
+	mode := GetEnv("ENV_MODE", "prod")
+	defaultHost := "localhost"
+	if mode == "prod" {
+		defaultHost = "agni-mysql"
+	}
 	return MySQLConfig{
 		MYSQL_USER:          GetEnv("MYSQL_USER", ""),
 		MYSQL_ROOT_PASSWORD: GetEnv("MYSQL_ROOT_PASSWORD", ""),
-		DB_HOST:             GetEnv("DB_HOST", ""),
+		DB_HOST:             GetEnv("DB_HOST", defaultHost),
 		MYSQL_DATABASE:      GetEnv("MYSQL_DATABASE", ""),
 	}
 }
@@ -91,8 +99,13 @@ type RedisEnvConfig struct {
 }
 
 func GetRedisEnvConfig() RedisEnvConfig {
+	mode := GetEnv("ENV_MODE", "prod")
+	defaultHost := "localhost"
+	if mode == "prod" {
+		defaultHost = "agni-redis"
+	}
 	return RedisEnvConfig{
-		Host:         GetEnv("REDIS_HOST", "localhost"),
+		Host:         GetEnv("REDIS_HOST", defaultHost),
 		Port:         GetEnv("REDIS_PORT", "6379"),
 		Password:     GetEnv("REDIS_PASSWORD", ""),
 		DB:           GetEnvAsInt("REDIS_DB", 0),
@@ -236,7 +249,7 @@ func GetEnvAsInt(key string, defaultValue int) int {
 }
 
 func GetEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
-	valueStr := GetEnv(key, fmt.Sprintf("%d", defaultValue))
+	valueStr := GetEnv(key, defaultValue.String())
 	value, err := time.ParseDuration(valueStr)
 	if err != nil {
 		return defaultValue
