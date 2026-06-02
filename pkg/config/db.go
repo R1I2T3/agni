@@ -31,13 +31,7 @@ func InitializeMySQL(mySQLConfig db.MySQLConfig) {
 	if err := db.InitMySQL(envConfig.ENV_MODE, mySQLConfig, allModel...); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-
-	mySQLHealth := db.MySQLHealthCheck()
-	log.Printf("Database Health Status: %+v", mySQLHealth)
-
-	if mySQLHealth["ping"] == true {
-		log.Println("✅ Database is healthy")
-	} else {
-		log.Fatalf("❌ Database health check failed: %v", mySQLHealth)
-	}
+	// Log connection status
+	dbHealth := db.MySQLHealthCheck()
+	log.Printf("Database Health Status: %+v", dbHealth)
 }

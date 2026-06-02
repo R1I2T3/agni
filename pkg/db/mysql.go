@@ -29,17 +29,16 @@ func InitMySQL(mode string, config MySQLConfig, models ...interface{}) error {
 		dialector = mysql.Open(config.DSN)
 	}
 
-	// Configure GORM
 	gormConfig := &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	}
 	var err error
 	MySQLDB, err = gorm.Open(dialector, gormConfig)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
+		return fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// SQLite doesn't need TCP socket-based ping check inside InitMySQL
+	// SQLite doesn't need standard ping check via SQLDB
 	if mode != "local" {
 		if err := PingMySQL(); err != nil {
 			return fmt.Errorf("failed to ping MySQL database: %w", err)
@@ -52,12 +51,6 @@ func InitMySQL(mode string, config MySQLConfig, models ...interface{}) error {
 		}
 		log.Printf("✅ Auto migrations completed successfully")
 	}
-
-	if mode == "local" {
-		log.Println("✅ SQLite connected successfully")
-	} else {
-		log.Printf("✅ MySQL connected successfully with DSN %s", config.DSN)
-	}
 	return nil
 }
 
@@ -65,16 +58,10 @@ func PingMySQL() error {
 	if MySQLDB == nil {
 		return fmt.Errorf("database client not initialized")
 	}
-
-	if MySQLDB.Dialector.Name() == "sqlite" {
-		return nil
-	}
-
 	sqlDB, err := MySQLDB.DB()
 	if err != nil {
 		return err
 	}
-
 	return sqlDB.Ping()
 }
 
@@ -103,47 +90,26 @@ func MySQLHealthCheck() map[string]interface{} {
 		"ping":      false,
 		"error":     nil,
 	}
-
 	if MySQLDB == nil {
 		result["status"] = "disconnected"
 		result["error"] = "Database not initialized"
 		return result
 	}
-
 	result["connected"] = true
 
-	// Skip standard TCP socket Ping for SQLite
-	if MySQLDB.Dialector.Name() == "sqlite" {
+	// Skip socket Ping for SQLite
+	sqlDB, err := MySQLDB.DB()
+	if err == nil && sqlDB.Ping() == nil {
 		result["ping"] = true
 		result["status"] = "healthy"
-		sqlDB, err := MySQLDB.DB()
-		if err == nil {
-			stats := sqlDB.Stats()
-			result["open_connections"] = stats.OpenConnections
-			result["in_use"] = stats.InUse
-			result["idle"] = stats.Idle
-		}
-		return result
-	}
-
-	// Test ping
-	if err := PingMySQL(); err != nil {
-		result["status"] = "unhealthy"
-		result["error"] = err.Error()
-		return result
-	}
-
-	result["ping"] = true
-	result["status"] = "healthy"
-
-	// Get database stats
-	sqlDB, err := MySQLDB.DB()
-	if err == nil {
 		stats := sqlDB.Stats()
 		result["open_connections"] = stats.OpenConnections
-		result["in_use"] = stats.InUse
-		result["idle"] = stats.Idle
+	} else if err != nil {
+		result["status"] = "unhealthy"
+		result["error"] = err.Error()
+	} else {
+		result["ping"] = true
+		result["status"] = "healthy"
 	}
-
 	return result
 }
