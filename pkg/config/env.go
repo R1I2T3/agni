@@ -213,7 +213,8 @@ type InAppConfig struct {
 
 func GetInAppConfig() InAppConfig {
 	return InAppConfig{
-		stream: GetEnv("Redis_InApp_streamName", "stream:inapp")}
+		stream: GetEnv("Redis_InApp_streamName", "inapp:stream"),
+	}
 }
 
 func GetLogLevel(level string) logger.LogLevel {

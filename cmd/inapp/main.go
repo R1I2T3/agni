@@ -41,7 +41,7 @@ func main() {
 	_ = rdb.XGroupCreateMkStream(ctx, envConfig.InAppServiceConfig.StreamName, envConfig.InAppServiceConfig.GroupName, "$").Err()
 
 	// Start consumer loop (reads from stream, publishes to pub/sub)
-	go inapp.StartConsumer(ctx, rdb, envConfig.InAppServiceConfig.GroupName, envConfig.InAppServiceConfig.ConsumerName)
+	go inapp.StartConsumer(ctx, rdb, envConfig.InAppServiceConfig.StreamName, envConfig.InAppServiceConfig.GroupName, envConfig.InAppServiceConfig.ConsumerName)
 
 	// Start broadcast subscriber (listens to pub/sub, delivers to local WebSocket hub)
 	///	go startBroadcastSubscriber(ctx, rdb)

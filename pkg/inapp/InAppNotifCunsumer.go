@@ -16,12 +16,12 @@ const DLQ = "stream:inapp:dlq"
 const ProcessedSet = "inapp:processed_ids"
 const BroadcastChannelPrefix = "inapp:broadcast:" // New constant
 
-func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer string) {
+func StartConsumer(ctx context.Context, rdb *redis.Client, stream, group, consumer string) {
 	for {
 		entries, err := rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
-			Streams:  []string{StreamName, ">"},
+			Streams:  []string{stream, ">"},
 			Count:    10,
 			Block:    5 * time.Second,
 		}).Result()
@@ -39,8 +39,8 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 				var payload map[string]interface{}
 				if err := json.Unmarshal([]byte(raw), &payload); err != nil {
 					log.Printf("inapp: invalid payload: %v", err)
-					_ = rdb.XAck(ctx, StreamName, group, msg.ID)
-					_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
+					_ = rdb.XAck(ctx, stream, group, msg.ID)
+					_, _ = rdb.XDel(ctx, stream, msg.ID).Result()
 					continue
 				}
 
@@ -51,8 +51,8 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 				// Idempotency check
 				already, _ := rdb.SIsMember(ctx, ProcessedSet, id).Result()
 				if already {
-					_ = rdb.XAck(ctx, StreamName, group, msg.ID)
-					_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
+					_ = rdb.XAck(ctx, stream, group, msg.ID)
+					_, _ = rdb.XDel(ctx, stream, msg.ID).Result()
 					continue
 				}
 
@@ -67,8 +67,8 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, group, consumer strin
 
 				// Mark processed and ack
 				_, _ = rdb.SAdd(ctx, ProcessedSet, id).Result()
-				_ = rdb.XAck(ctx, StreamName, group, msg.ID)
-				_, _ = rdb.XDel(ctx, StreamName, msg.ID).Result()
+				_ = rdb.XAck(ctx, stream, group, msg.ID)
+				_, _ = rdb.XDel(ctx, stream, msg.ID).Result()
 			}
 		}
 	}
