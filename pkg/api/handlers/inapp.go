@@ -14,23 +14,21 @@ func supportsReadStateColumns(mySQLDB *gorm.DB) bool {
 	return mySQLDB.Migrator().HasColumn(&db.Notification{}, "read")
 }
 
-// GetInAppNotifications retrieves notifications for a user
-// GET /api/inapp/notifications?user_id=<user_id>&unread_only=true&limit=50&offset=0
+// GetInAppNotifications retrieves notifications for a secure authenticated user
 func GetInAppNotifications(c *fiber.Ctx) error {
 
 	applicationID := c.Locals("application_id").(string)
 
-	// Get query parameters
-	userID := c.Query("user_id")
+	// Retrieve securely authenticated userID from locals context instead of query parameter (IDOR Fix)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
+	}
 	unreadOnly := c.Query("unread_only", "false") == "true"
 	limit := c.QueryInt("limit", 50)
 	offset := c.QueryInt("offset", 0)
-
-	if userID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "user_id is required",
-		})
-	}
 	//print all for debugging
 	println(userID, unreadOnly, limit, offset)
 	mySQLDB := db.GetMySQLDB()
@@ -129,19 +127,11 @@ func MarkNotificationAsRead(c *fiber.Ctx) error {
 func MarkAllNotificationsAsRead(c *fiber.Ctx) error {
 	applicationID := c.Locals("application_id").(string)
 
-	var req struct {
-		UserID string `json:"user_id"`
-	}
-
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
-	}
-
-	if req.UserID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "user_id is required",
+	// Retrieve securely authenticated userID from locals context instead of parsing from request body (IDOR Fix)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
 		})
 	}
 
@@ -150,7 +140,7 @@ func MarkAllNotificationsAsRead(c *fiber.Ctx) error {
 	now := time.Now()
 	query := mySQLDB.Model(&db.Notification{}).
 		Where("application_id = ? AND recipient = ? AND channel = ?",
-			applicationID, req.UserID, "InApp")
+			applicationID, userID, "InApp")
 
 	updates := map[string]interface{}{}
 	if supportsReadStateColumns(mySQLDB) {
