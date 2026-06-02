@@ -43,7 +43,8 @@ func (s *TwilioSender) TwilioSend(to, message string) (string, error) {
 		return "", fmt.Errorf("failed to send SMS via Twilio: %w", err)
 	}
 
-	fmt.Printf("SMS sent via Twilio to %s\n", to)
-
+	if resp == nil || resp.Sid == nil {
+		return "", fmt.Errorf("empty response or message SID from Twilio API")
+	}
 	return *resp.Sid, nil
 }
