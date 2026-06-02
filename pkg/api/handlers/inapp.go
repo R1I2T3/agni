@@ -81,6 +81,14 @@ func MarkNotificationAsRead(c *fiber.Ctx) error {
 		})
 	}
 
+	// Retrieve securely authenticated userID from locals context (IDOR Fix)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
+	}
+
 	// Parse UUID
 	id, err := uuid.Parse(notificationID)
 	if err != nil {
@@ -101,7 +109,7 @@ func MarkNotificationAsRead(c *fiber.Ctx) error {
 	}
 
 	result := mySQLDB.Model(&db.Notification{}).
-		Where("id = ? AND application_id = ? AND channel = ?", id, applicationID, "InApp").
+		Where("id = ? AND application_id = ? AND recipient = ? AND channel = ?", id, applicationID, userID, "InApp").
 		Updates(updates)
 
 	if result.Error != nil {
@@ -168,14 +176,14 @@ func MarkAllNotificationsAsRead(c *fiber.Ctx) error {
 }
 
 // GetUnreadCount returns the count of unread notifications
-// GET /api/inapp/notifications/unread-count?user_id=<user_id>
 func GetUnreadCount(c *fiber.Ctx) error {
 	applicationID := c.Locals("application_id").(string)
-	userID := c.Locals("user_id").(string)
 
-	if userID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "user_id is required",
+	// Retrieve securely authenticated userID from locals context (IDOR Fix & Panic Prevention)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
 		})
 	}
 
