@@ -10,14 +10,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const StreamName = "stream:inapp"
-const GroupName = "inapp-group"
-const DLQ = "stream:inapp:dlq"
 const ProcessedSet = "inapp:processed_ids"
 const BroadcastChannelPrefix = "inapp:broadcast:" // New constant
 
 func StartConsumer(ctx context.Context, rdb *redis.Client, stream, group, consumer string) {
 	for {
+		if ctx.Err() != nil {
+			log.Printf("inapp consumer: stopping due to context cancellation: %v", ctx.Err())
+			return
+		}
 		entries, err := rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
@@ -28,6 +29,10 @@ func StartConsumer(ctx context.Context, rdb *redis.Client, stream, group, consum
 		if err != nil {
 			if err == redis.Nil {
 				continue
+			}
+			if ctx.Err() != nil {
+				log.Printf("inapp consumer: stopping due to context cancellation: %v", ctx.Err())
+				return
 			}
 			log.Printf("inapp consumer read err: %v", err)
 			time.Sleep(time.Second)
