@@ -97,19 +97,22 @@ func MySQLHealthCheck() map[string]interface{} {
 	}
 	result["connected"] = true
 
-	// Skip socket Ping for SQLite
 	sqlDB, err := MySQLDB.DB()
-	if err == nil && sqlDB.Ping() == nil {
-		result["ping"] = true
-		result["status"] = "healthy"
-		stats := sqlDB.Stats()
-		result["open_connections"] = stats.OpenConnections
-	} else if err != nil {
+	if err != nil {
 		result["status"] = "unhealthy"
 		result["error"] = err.Error()
-	} else {
-		result["ping"] = true
-		result["status"] = "healthy"
+		return result
 	}
+
+	if err := sqlDB.Ping(); err != nil {
+		result["status"] = "unhealthy"
+		result["error"] = err.Error()
+		return result
+	}
+
+	result["ping"] = true
+	result["status"] = "healthy"
+	stats := sqlDB.Stats()
+	result["open_connections"] = stats.OpenConnections
 	return result
 }

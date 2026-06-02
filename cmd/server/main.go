@@ -30,17 +30,16 @@ func main() {
 
 	MysqlConfig := envConfig.MySQLConfig
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		MysqlConfig.MYSQL_USER,
-		MysqlConfig.MYSQL_ROOT_PASSWORD,
-		MysqlConfig.DB_HOST,
-		MysqlConfig.MYSQL_DATABASE,
-	)
-
-	fmt.Println("MySQL DSN:", dsn)
-
-	mySQLConfig := db.MySQLConfig{
-		DSN: dsn,
+	var mySQLConfig db.MySQLConfig
+	if envConfig.ENV_MODE != "local" {
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			MysqlConfig.MYSQL_USER,
+			MysqlConfig.MYSQL_ROOT_PASSWORD,
+			MysqlConfig.DB_HOST,
+			MysqlConfig.MYSQL_DATABASE,
+		)
+		fmt.Println("MySQL DSN:", dsn)
+		mySQLConfig.DSN = dsn
 	}
 
 	// Initialize databases
