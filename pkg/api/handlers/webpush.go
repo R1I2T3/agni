@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/r1i2t3/agni/pkg/db"
@@ -19,12 +19,16 @@ type Subscription struct {
 
 func HandleWebPushSubscription(c *fiber.Ctx) error {
 	var sub Subscription
-	fmt.Println("Handling web push subscription")
 	if err := c.BodyParser(&sub); err != nil {
-		fmt.Println("Error parsing body:", err)
+		log.Printf("Error parsing body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
-	fmt.Println("Received subscription:", sub)
+
+	// Validate required fields
+	if sub.Endpoint == "" || sub.Keys.Auth == "" || sub.Keys.P256dh == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Endpoint, Auth key, and P256dh key are required"})
+	}
+
 	var subScriptionModel = &db.WebPushSubscription{
 		Endpoint: sub.Endpoint,
 		Auth:     sub.Keys.Auth,
@@ -32,8 +36,17 @@ func HandleWebPushSubscription(c *fiber.Ctx) error {
 		Device:   sub.Device,
 		UserID:   sub.UserID,
 	}
-	db := db.GetMySQLDB()
-	if err := db.Create(subScriptionModel).Error; err != nil {
+	dbClient := db.GetMySQLDB()
+
+	// Check if subscription with endpoint already exists (prevent 500 error on duplicate unique key index conflict)
+	var existing db.WebPushSubscription
+	if err := dbClient.Where("endpoint = ?", sub.Endpoint).First(&existing).Error; err == nil {
+		log.Printf("WebPush subscription already registered for endpoint: %s", sub.Endpoint)
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Subscription created successfully"})
+	}
+
+	if err := dbClient.Create(subScriptionModel).Error; err != nil {
+		log.Printf("Error saving subscription to DB: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save subscription"})
 	}
 
