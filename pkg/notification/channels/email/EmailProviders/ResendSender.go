@@ -37,12 +37,13 @@ func (s *ResendSender) Send(ctx context.Context, notification *notification.Noti
 		Subject: notification.Subject,
 	}
 	switch notification.MessageContentType {
-	case "text/plain":
-		email.Text = notification.Message
 	case "text/html":
 		email.Html = notification.Message
+	case "text/plain":
+		email.Text = notification.Message
 	default:
-		// handle other content types if needed
+		// Fallback to plain text if not specified
+		email.Text = notification.Message
 	}
 
 	resp, err := s.Client.Emails.Send(email)

@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/r1i2t3/agni/pkg/db"
 	"github.com/r1i2t3/agni/pkg/notification"
 	"github.com/r1i2t3/agni/pkg/notification/channels/email"
@@ -90,19 +91,34 @@ func (w *NotificationWorker) Start() {
 
 // processNext dequeues and processes the next notification
 func (w *NotificationWorker) processNext() error {
-	// Dequeue notification with 5 second timeout
-	fmt.Println("Attempting to dequeue notification...")
 	queuedNotif, err := queue.DequeueNotification(w.QueueName, time.Second*5)
 	if err != nil {
-		fmt.Println("Error dequeuing notification:", err)
 		return err
 	}
 
-	log.Printf("📝 Worker %d processing notification %s for %s, subject: %s",
-		w.WorkerID, queuedNotif.ID, queuedNotif.Recipient, queuedNotif.Subject)
+	log.Printf("📝 Worker %d processing notification %s for %s", w.WorkerID, queuedNotif.ID, queuedNotif.Recipient)
 
-	// Process the notification
-	return w.processNotification(queuedNotif)
+	err = w.processNotification(queuedNotif)
+	if err != nil {
+		log.Printf("❌ Worker %d error sending notification %s: %v", w.WorkerID, queuedNotif.ID, err)
+
+		// Retry Logic
+		if queuedNotif.Attempts < w.MaxRetries {
+			queuedNotif.Attempts++
+			log.Printf("🔄 Rescheduling notification %s for retry (Attempt %d/%d) in %v",
+				queuedNotif.ID, queuedNotif.Attempts, w.MaxRetries, w.RetryDelay)
+
+			_, retryErr := queue.DelayReEnqueueNotification(queuedNotif, w.RetryDelay)
+			if retryErr != nil {
+				log.Printf("❌ Failed to reschedule notification: %v", retryErr)
+			}
+		} else {
+			log.Printf("💀 Notification %s reached max retries (%d). Marking as failed.",
+				queuedNotif.ID, w.MaxRetries)
+			// Optional: save to database as permanently failed
+		}
+	}
+	return nil
 }
 func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification) error {
 	log.Printf("🔔 Worker %d processing notification %s", w.WorkerID, notif.ID)
@@ -134,9 +150,23 @@ func (w *NotificationWorker) processNotification(notif *queue.QueuedNotification
 
 	if err == nil {
 		database := db.GetMySQLDB()
-		err := database.Create(&sentNotification).Error
-		if err != nil {
-			log.Printf("Error saving to DB: %v", err)
+		dbNotif := db.Notification{
+			ID:                 uuid.MustParse(sentNotification.ID),
+			ApplicationID:      uuid.MustParse(sentNotification.ApplicationID),
+			QueueID:            sentNotification.QueueID,
+			Channel:            string(sentNotification.Channel),
+			Provider:           sentNotification.Provider,
+			Recipient:          sentNotification.Recipient,
+			Subject:            sentNotification.Subject,
+			Message:            sentNotification.Message,
+			Status:             sentNotification.Status,
+			Attempts:           sentNotification.Attempts,
+			MessageContentType: sentNotification.MessageContentType,
+			TemplateID:         sentNotification.TemplateID,
+		}
+		dbErr := database.Create(&dbNotif).Error
+		if dbErr != nil {
+			log.Printf("Error saving notification record to DB: %v", dbErr)
 		}
 	}
 

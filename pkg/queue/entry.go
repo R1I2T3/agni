@@ -92,7 +92,7 @@ func DelayEnqueueNotification(QueuedNotification *QueuedNotification, delay time
 	}
 
 	// Add to delayed queue with score as current time + delay
-	err = RedisClient.ZAdd(ctx, "NotificationQueue:delayed", member).Err()
+	err = RedisClient.ZAdd(ctx, "QueuedNotification:delayed", member).Err()
 
 	if err != nil {
 		return "", fmt.Errorf("failed to enqueue delayed notification: %w", err)

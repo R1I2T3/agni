@@ -24,7 +24,7 @@ func ReEnqueueNotification(QueuedNotification *QueuedNotification) (string, erro
 		return "", fmt.Errorf("failed to serialize notification: %w", err)
 	}
 	// enqueue the notification in Redis
-	err = RedisClient.LPush(ctx, "NotificationQueue", data).Err()
+	err = RedisClient.LPush(ctx, "QueuedNotification", data).Err()
 	if err != nil {
 		return "", fmt.Errorf("failed to enqueue notification: %w", err)
 	}

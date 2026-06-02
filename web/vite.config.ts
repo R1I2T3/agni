@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { resolve } from 'node:path'
 
+const isLocal = process.env.ENV_MODE === 'local'
+const backendTarget = isLocal ? 'http://localhost:8080/' : 'http://agni-backend:8080/'
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -21,7 +24,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://agni-backend:8080/', // Adjust to your backend server
+        target: backendTarget, // Adjust to your backend server
         changeOrigin: true,
         secure: false, // If your backend is not using HTTPS
       },

@@ -26,7 +26,7 @@ func InitializeEmailChannel(EmailEnvConfig *EmailEnvConfig) {
 		EmailEnvConfig.SMTPPassword,
 	)
 	if err != nil {
-		log.Fatalf("Failed to initialize email notifier: %v", err)
+		log.Printf("Failed to initialize email notifier: %v", err)
 	}
 
 	log.Println("✅ Email channel initialized successfully")

@@ -30,6 +30,7 @@ func ProcessSMSNotifications(notif *queue.QueuedNotification) (*notification.Not
 		_, err := smsproviders.TwilioClient.TwilioSend(notif.Recipient, notif.Message)
 		if err != nil {
 			log.Printf("Failed to send SMS notification via Twilio: %v", err)
+			return notification, err
 		}
 	default:
 		log.Printf("Unknown SMS provider %s", notif.Provider)

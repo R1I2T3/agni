@@ -51,7 +51,9 @@ type Notification struct {
 
 // BeforeCreate hook is correct and needs no changes
 func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
-	n.ID = uuid.New()
+	if n.ID == uuid.Nil {
+		n.ID = uuid.New()
+	}
 	return
 }
 
