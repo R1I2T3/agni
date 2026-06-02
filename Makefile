@@ -12,7 +12,7 @@ up: install
 	@ENV_MODE=local go run cmd/inapp/main.go > inapp.log 2>&1 & echo $$! > .inapp.pid
 	@sleep 2
 	@echo "🖥️  Starting Web Frontend..."
-	@cd web && npm run dev
+	@ENV_MODE=local cd web && npm run dev
 
 install:
 	@echo "📦 Checking and installing frontend dependencies..."
