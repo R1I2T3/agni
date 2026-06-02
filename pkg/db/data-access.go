@@ -74,7 +74,7 @@ func GetApplicationByTokenAndSecret(token string, secret string) (*Application, 
 func GetSubscriptionByUserId(userID string) ([]WebPushSubscription, error) {
 	var subscription []WebPushSubscription
 	something := GetMySQLDB()
-	if err := something.Where("user_id = ?", userID).First(&subscription).Error; err != nil {
+	if err := something.Where("user_id = ?", userID).Find(&subscription).Error; err != nil {
 		return nil, err
 	}
 

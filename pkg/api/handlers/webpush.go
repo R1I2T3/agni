@@ -33,7 +33,7 @@ func HandleWebPushSubscription(c *fiber.Ctx) error {
 		UserID:   sub.UserID,
 	}
 	db := db.GetMySQLDB()
-	if err := db.Create(&subScriptionModel).Error; err != nil {
+	if err := db.Create(subScriptionModel).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save subscription"})
 	}
 
