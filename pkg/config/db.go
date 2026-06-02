@@ -22,21 +22,22 @@ func InitializeRedis(redisConfig db.RedisConfig) {
 }
 
 func InitializeMySQL(mySQLConfig db.MySQLConfig) {
+	envConfig := GetEnvConfig()
 	allModel := []interface{}{
 		&db.Application{},
 		&db.Notification{},
 		&db.WebPushSubscription{},
 	}
-	if err := db.InitMySQL(mySQLConfig, allModel...); err != nil {
-		log.Fatalf("Failed to initialize MySQL: %v", err)
+	if err := db.InitMySQL(envConfig.ENV_MODE, mySQLConfig, allModel...); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
 	mySQLHealth := db.MySQLHealthCheck()
-	log.Printf("MySQL Health Check: %+v", mySQLHealth)
+	log.Printf("Database Health Status: %+v", mySQLHealth)
 
 	if mySQLHealth["ping"] == true {
-		log.Println("✅ MySQL is healthy")
+		log.Println("✅ Database is healthy")
 	} else {
-		log.Fatalf("❌ MySQL health check failed: %v", mySQLHealth)
+		log.Fatalf("❌ Database health check failed: %v", mySQLHealth)
 	}
 }

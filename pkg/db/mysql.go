@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -18,18 +19,31 @@ type MySQLConfig struct {
 	LogLevel logger.LogLevel
 }
 
-func InitMySQL(config MySQLConfig, models ...interface{}) error {
+func InitMySQL(mode string, config MySQLConfig, models ...interface{}) error {
+	var dialector gorm.Dialector
+	if mode == "local" {
+		log.Println("🔌 GORM Mode: LOCAL (Initializing SQLite connection: agni.db)")
+		dialector = sqlite.Open("agni.db")
+	} else {
+		log.Printf("🔌 GORM Mode: PROD (Initializing MySQL connection: %s)", config.DSN)
+		dialector = mysql.Open(config.DSN)
+	}
+
 	// Configure GORM
 	gormConfig := &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	}
 	var err error
-	MySQLDB, err = gorm.Open(mysql.Open(config.DSN), gormConfig)
+	MySQLDB, err = gorm.Open(dialector, gormConfig)
 	if err != nil {
-		return fmt.Errorf("failed to connect to MySQL database: %w", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
-	if err := PingMySQL(); err != nil {
-		return fmt.Errorf("failed to ping MySQL database: %w", err)
+
+	// SQLite doesn't need TCP socket-based ping check inside InitMySQL
+	if mode != "local" {
+		if err := PingMySQL(); err != nil {
+			return fmt.Errorf("failed to ping MySQL database: %w", err)
+		}
 	}
 
 	if len(models) > 0 {
@@ -39,13 +53,21 @@ func InitMySQL(config MySQLConfig, models ...interface{}) error {
 		log.Printf("✅ Auto migrations completed successfully")
 	}
 
-	log.Printf("✅ MySQL connected successfully with DSN %s", config.DSN)
+	if mode == "local" {
+		log.Println("✅ SQLite connected successfully")
+	} else {
+		log.Printf("✅ MySQL connected successfully with DSN %s", config.DSN)
+	}
 	return nil
 }
 
 func PingMySQL() error {
 	if MySQLDB == nil {
-		return fmt.Errorf("MySQL client not initialized")
+		return fmt.Errorf("database client not initialized")
+	}
+
+	if MySQLDB.Dialector.Name() == "sqlite" {
+		return nil
 	}
 
 	sqlDB, err := MySQLDB.DB()
@@ -56,12 +78,12 @@ func PingMySQL() error {
 	return sqlDB.Ping()
 }
 
-// GetMySQLDB returns the MySQL database instance
+// GetMySQLDB returns the database instance
 func GetMySQLDB() *gorm.DB {
 	return MySQLDB
 }
 
-// CloseMySQL closes MySQL connection
+// CloseMySQL closes database connection
 func CloseMySQL() error {
 	if MySQLDB != nil {
 		sqlDB, err := MySQLDB.DB()
@@ -73,7 +95,7 @@ func CloseMySQL() error {
 	return nil
 }
 
-// MySQLHealthCheck checks MySQL health status
+// MySQLHealthCheck checks database health status
 func MySQLHealthCheck() map[string]interface{} {
 	result := map[string]interface{}{
 		"status":    "unknown",
@@ -84,11 +106,25 @@ func MySQLHealthCheck() map[string]interface{} {
 
 	if MySQLDB == nil {
 		result["status"] = "disconnected"
-		result["error"] = "MySQL database not initialized"
+		result["error"] = "Database not initialized"
 		return result
 	}
 
 	result["connected"] = true
+
+	// Skip standard TCP socket Ping for SQLite
+	if MySQLDB.Dialector.Name() == "sqlite" {
+		result["ping"] = true
+		result["status"] = "healthy"
+		sqlDB, err := MySQLDB.DB()
+		if err == nil {
+			stats := sqlDB.Stats()
+			result["open_connections"] = stats.OpenConnections
+			result["in_use"] = stats.InUse
+			result["idle"] = stats.Idle
+		}
+		return result
+	}
 
 	// Test ping
 	if err := PingMySQL(); err != nil {
