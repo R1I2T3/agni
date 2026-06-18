@@ -1,0 +1,1032 @@
+openapi: "3.1.0"
+info:
+  title: Agni Notification Engine API
+  version: "1.0.0"
+  description: >
+    Agni is a self-hostable, lightweight, and scalable notification engine.
+    It provides REST endpoints for sending notifications across multiple
+    channels (email, SMS, push, webhook), managing in-app notifications,
+    handling WebPush subscriptions, and administering applications.
+servers:
+  - url: http://localhost:8080
+    description: Main API server (Fiber)
+  - url: http://localhost:4000
+    description: In-App WebSocket service (separate process)
+
+paths:
+  /:
+    get:
+      tags:
+        - Root
+      summary: Root welcome endpoint
+      operationId: rootWelcome
+      responses:
+        "200":
+          description: Service info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Agni Notification Engine"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  status:
+                    type: string
+                    example: "running"
+                required:
+                  - message
+                  - version
+                  - status
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check for Redis and MySQL connectivity
+      operationId: healthCheck
+      responses:
+        "200":
+          description: All services healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: One or more services unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: HMAC-based login for client applications; returns a JWT in an HTTP-only cookie
+      operationId: hmacLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HMACAuthRequest"
+      responses:
+        "200":
+          description: Authentication successful; JWT set in `Agni-auth-token` cookie
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                description: "Agni-auth-token (httpOnly, path=/, max-age=86400)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HMACLoginSuccessResponse"
+        "400":
+          description: Invalid request body or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid credentials or HMAC verification failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Token generation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/auth/login:
+    post:
+      tags:
+        - Admin
+      summary: Admin login; validates username/password against env config
+      operationId: adminLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful; admin JWT set in `admin_token` cookie
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                description: "admin_token (httpOnly, max-age=86400)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login successful"
+                required:
+                  - message
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Token generation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/logout:
+    post:
+      tags:
+        - Admin
+      summary: Admin logout; clears the admin_token cookie
+      operationId: adminLogout
+      responses:
+        "200":
+          description: Logged out successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                description: "admin_token cleared (max-age=-1)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out"
+                required:
+                  - message
+
+  /api/admin/dashboard:
+    get:
+      tags:
+        - Admin
+      summary: Admin dashboard redirect (returns welcome message and admin username)
+      operationId: adminDashboard
+      security:
+        - AdminCookieAuth: []
+      responses:
+        "200":
+          description: Dashboard info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Welcome, admin"
+                  user:
+                    type: string
+                    description: "Admin username from JWT claims (weakly typed — set via c.Locals)"
+                required:
+                  - message
+        "401":
+          description: Missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/create-application:
+    post:
+      tags:
+        - Admin
+      summary: Create a new application and generate API token/secret
+      operationId: createApplication
+      security:
+        - AdminCookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTokenRequest"
+      responses:
+        "200":
+          description: Application created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateApplicationSuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to create application or generate credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/applications:
+    get:
+      tags:
+        - Admin
+      summary: List all registered applications
+      operationId: getAllApplications
+      security:
+        - AdminCookieAuth: []
+      responses:
+        "200":
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicationResponse"
+                required:
+                  - applications
+        "401":
+          description: Missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to fetch applications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/regenerate-token:
+    put:
+      tags:
+        - Admin
+      summary: Regenerate API token and secret for an application
+      operationId: regenerateToken
+      security:
+        - AdminCookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateApplicationRequest"
+      responses:
+        "200":
+          description: Credentials regenerated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegenerateTokenSuccessResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to update credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/delete-application:
+    put:
+      tags:
+        - Admin
+      summary: Delete an application by name
+      operationId: deleteApplication
+      security:
+        - AdminCookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateApplicationRequest"
+      responses:
+        "200":
+          description: Application deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Application deleted successfully"
+                required:
+                  - message
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to delete application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/notification/send:
+    post:
+      tags:
+        - Notifications
+      summary: >
+        Enqueue a notification for delivery. The ApplicationAuth middleware
+        reads `application_token` and `application_secret` from the same
+        request body before passing control to the handler.
+      operationId: enqueueNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ApplicationAuthRequest"
+                - $ref: "#/components/schemas/NotificationRequest"
+      responses:
+        "200":
+          description: Notification queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnqueueSuccessResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Invalid application credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to enqueue notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inapp/notifications:
+    get:
+      tags:
+        - In-App Notifications
+      summary: Retrieve in-app notifications for the authenticated user
+      operationId: getInAppNotifications
+      security:
+        - AppJwtQueryCookieAuth: []
+      parameters:
+        - name: unread_only
+          in: query
+          schema:
+            type: string
+            default: "false"
+          description: Filter to unread notifications only
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+          description: Maximum number of notifications to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of notifications to skip
+      responses:
+        "200":
+          description: Paginated list of notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InAppNotificationsResponse"
+        "401":
+          description: Unauthorized (missing or invalid JWT)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to fetch notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inapp/notifications/unread-count:
+    get:
+      tags:
+        - In-App Notifications
+      summary: Get count of unread in-app notifications for the authenticated user
+      operationId: getUnreadCount
+      security:
+        - AppJwtQueryCookieAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                  unread_count:
+                    type: integer
+                required:
+                  - user_id
+                  - unread_count
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to count notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inapp/notifications/{id}/read:
+    put:
+      tags:
+        - In-App Notifications
+      summary: Mark a single notification as read
+      operationId: markNotificationAsRead
+      security:
+        - AppJwtQueryCookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Notification ID
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  message:
+                    type: string
+                    example: "Notification marked as read"
+                required:
+                  - success
+                  - message
+        "400":
+          description: Missing or invalid notification ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Database update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inapp/notifications/read-all:
+    put:
+      tags:
+        - In-App Notifications
+      summary: Mark all in-app notifications as read for the authenticated user
+      operationId: markAllNotificationsAsRead
+      security:
+        - AppJwtQueryCookieAuth: []
+      responses:
+        "200":
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  message:
+                    type: string
+                    example: "All notifications marked as read"
+                  count:
+                    type: integer
+                    description: Number of rows affected
+                required:
+                  - success
+                  - message
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Database update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/webpush/subscribe:
+    post:
+      tags:
+        - Web Push
+      summary: Register a WebPush subscription endpoint
+      operationId: handleWebPushSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebPushSubscriptionRequest"
+      responses:
+        "201":
+          description: Subscription created or already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Subscription created successfully"
+                required:
+                  - message
+        "400":
+          description: Invalid request or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to save subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    AdminCookieAuth:
+      type: apiKey
+      in: cookie
+      name: admin_token
+      description: HTTP-only cookie set by POST /api/admin/auth/login
+    AppJwtQueryCookieAuth:
+      type: apiKey
+      in: cookie
+      name: Agni-auth-token
+      description: >
+        JWT authentication. Token can be provided via the `Agni-auth-token`
+        cookie (set by POST /api/auth/login) or via the `token` query
+        parameter.
+
+  schemas:
+    # ── Error ──────────────────────────────────────────────────────────
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+      required:
+        - error
+
+    # ── Auth / Admin ───────────────────────────────────────────────────
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Admin username (from env config)
+        password:
+          type: string
+          description: Admin password (from env config)
+      required:
+        - username
+        - password
+
+    HMACAuthRequest:
+      type: object
+      properties:
+        api_token:
+          type: string
+          description: Application API token
+        user_id:
+          type: string
+          description: End-user identifier
+        timestamp:
+          type: integer
+          description: Unix timestamp for replay-attack prevention (5 min window)
+        signature:
+          type: string
+          description: "HMAC-SHA256(api_secret, \"user_id:timestamp\")"
+      required:
+        - api_token
+        - user_id
+        - timestamp
+        - signature
+
+    HMACAuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token (if returned in body — currently set via cookie only)
+        expires_in:
+          type: integer
+          description: Token lifetime in seconds
+        user_id:
+          type: string
+      required:
+        - token
+        - expires_in
+        - user_id
+
+    HMACLoginSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        user_id:
+          type: string
+        expires_in:
+          type: integer
+          example: 86400
+        message:
+          type: string
+          example: "Authentication successful"
+      required:
+        - success
+        - user_id
+        - expires_in
+        - message
+
+    # ── Application Management ─────────────────────────────────────────
+    CreateTokenRequest:
+      type: object
+      properties:
+        application_name:
+          type: string
+      required:
+        - application_name
+
+    UpdateApplicationRequest:
+      type: object
+      properties:
+        application_name:
+          type: string
+      required:
+        - application_name
+
+    ApplicationResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        api_token:
+          type: string
+        api_secret:
+          type: string
+        created_at:
+          type: string
+      required:
+        - name
+        - api_token
+        - api_secret
+        - created_at
+
+    CreateApplicationSuccessResponse:
+      type: object
+      properties:
+        api-token:
+          type: string
+        api-secret:
+          type: string
+      required:
+        - api-token
+        - api-secret
+
+    RegenerateTokenSuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Application credentials updated successfully"
+        api_token:
+          type: string
+        api_secret:
+          type: string
+      required:
+        - message
+        - api_token
+        - api_secret
+
+    # ── Application Auth (middleware) ──────────────────────────────────
+    ApplicationAuthRequest:
+      type: object
+      description: >
+        Sent in the request body alongside NotificationRequest fields.
+        Middleware ApplicationAuth reads these fields from the body.
+      properties:
+        application_token:
+          type: string
+        application_secret:
+          type: string
+      required:
+        - application_token
+        - application_secret
+
+    # ── Notifications ──────────────────────────────────────────────────
+    NotificationRequest:
+      type: object
+      properties:
+        channel:
+          $ref: "#/components/schemas/NotificationChannel"
+        provider:
+          type: string
+          description: Provider name (e.g., "resend", "twilio")
+        recipient:
+          type: string
+          description: Recipient address (email, phone number, etc.)
+        subject:
+          type: string
+          description: Notification subject line
+        message:
+          type: string
+          description: Notification body content
+        message_content_type:
+          type: string
+          description: Content type hint (e.g., "text/html", "text/plain")
+        template_id:
+          type: string
+          description: Optional template identifier
+      required:
+        - channel
+        - recipient
+        - message
+
+    NotificationChannel:
+      type: string
+      enum:
+        - email
+        - sms
+        - push
+        - webhook
+      description: Delivery channel for the notification
+
+    EnqueueSuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Notification queued successfully"
+        queue_id:
+          type: string
+        status:
+          type: string
+          example: "queued"
+      required:
+        - message
+        - queue_id
+        - status
+
+    # ── In-App Notifications ───────────────────────────────────────────
+    DbNotification:
+      type: object
+      description: >
+        Notification model as returned by the in-app endpoints.
+        Fields without explicit json tags serialize as their Go field names.
+      properties:
+        ID:
+          type: string
+          format: uuid
+        ApplicationID:
+          type: string
+          format: uuid
+        QueueID:
+          type: string
+        Type:
+          type: string
+        Channel:
+          type: string
+        Provider:
+          type: string
+        template_id:
+          type: string
+        message_content_type:
+          type: string
+        Recipient:
+          type: string
+        Subject:
+          type: string
+        Message:
+          type: string
+        Status:
+          type: string
+        Attempts:
+          type: integer
+        read:
+          type: boolean
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+        CreatedAt:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        PersistedAt:
+          type: string
+          format: date-time
+          nullable: true
+        ProcessedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    InAppNotificationsResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/DbNotification"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        has_more:
+          type: boolean
+      required:
+        - notifications
+        - total
+        - limit
+        - offset
+        - has_more
+
+    # ── Web Push ───────────────────────────────────────────────────────
+    WebPushSubscriptionRequest:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          description: WebPush endpoint URL
+        keys:
+          type: object
+          properties:
+            auth:
+              type: string
+            p256dh:
+              type: string
+          required:
+            - auth
+            - p256dh
+        device:
+          type: string
+          description: Device identifier (optional)
+        user_id:
+          type: string
+          description: End-user identifier (optional)
+      required:
+        - endpoint
+        - keys
+
+    # ── Health ─────────────────────────────────────────────────────────
+    HealthResponse:
+      type: object
+      properties:
+        service:
+          type: string
+          example: "Agni Notification Engine"
+        status:
+          type: string
+          enum: ["healthy", "unhealthy"]
+        redis:
+          type: object
+          description: >
+            Weakly typed — returned from db.RedisHealthCheck() as
+            map[string]interface{}. Known keys: status (string),
+            connected (bool), ping (bool), error (string | null),
+            server_info (string, optional).
+        mysql:
+          type: object
+          description: >
+            Weakly typed — returned from db.MySQLHealthCheck() as
+            map[string]interface{}. Known keys: status (string),
+            connected (bool), ping (bool), error (string | null),
+            open_connections (int, optional).
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - service
+        - status
+        - redis
+        - mysql
+        - timestamp
