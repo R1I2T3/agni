@@ -1,0 +1,24 @@
+{
+  "name": "agni-notification-engine-api-mcp",
+  "version": "0.1.0",
+  "description": "Agni is a self-hostable, lightweight, and scalable notification engine. It provides REST endpoints for sending notifications across multiple channels (email, SMS, push, webhook), managing in-app notifications, handling WebPush subscriptions, and administering applications.\n",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
